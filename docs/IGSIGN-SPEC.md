@@ -236,20 +236,43 @@ When a stage with `strip_internal_on_complete = true` finishes:
 ### Approval matrix seed data (IG defaults per Craig)
 
 ```ruby
+# Confirmed approval chains (from CAF templates, May 2026)
+# ----------------------------------------------------------------
+# Signatories:  CLO=Craig Lawrence  CFO=Laren Farquharson
+#               COO=Don Bergsma    CEO=Sean Bergsma
+#               Procurement=Callie Baney
+#
+# NDA (NDA Approval Form template):
+#   Stage 1 (internal, ordered): Requestor -> BU Approver -> CLO
+#   Stage 2 (external, parallel): Counterparty
+#
+# Contract (Contract Approval Form template):
+#   Stage 1 (internal CAF, ordered, strip on complete):
+#     BU Head -> Procurement -> BU Finance -> CLO -> CFO -> COO -> CEO
+#   Stage 2 (external, parallel): Counterparty
+#   Stage 3 (optional CEO counter-sign): CEO
+# ----------------------------------------------------------------
+
 ApprovalMatrix.seed do |s|
   s.document_type = 'nda'
   s.stages = [
-    { name: 'IG Signing',          routing: 'parallel', required_roles: ['CLO'] },
-    { name: 'Counterparty Signing', routing: 'parallel', required_roles: [:counterparty] }
+    { name: 'Internal NDA Approval', routing: 'ordered',
+      required_roles: ['BU Approver', 'CLO'], strip_internal_on_complete: false },
+    { name: 'Counterparty Signing', routing: 'parallel',
+      required_roles: ['counterparty'] }
   ]
 end
 
 ApprovalMatrix.seed do |s|
   s.document_type = 'contract'
   s.stages = [
-    { name: 'Internal CAF Approval', routing: 'ordered', required_roles: ['Legal', 'CFO', 'CEO'], strip_internal_on_complete: true },
-    { name: 'Counterparty Signing',  routing: 'parallel', required_roles: [:counterparty, :counterparty_witness] },
-    { name: 'CEO Countersign',       routing: 'ordered', required_roles: ['CEO'], optional: true }
+    { name: 'Internal CAF Approval', routing: 'ordered',
+      required_roles: ['BU Head', 'Procurement', 'BU Finance', 'CLO', 'CFO', 'COO', 'CEO'],
+      strip_internal_on_complete: true },
+    { name: 'Counterparty Signing', routing: 'parallel',
+      required_roles: ['counterparty'] },
+    { name: 'CEO Countersign', routing: 'ordered',
+      required_roles: ['CEO'], optional: true }
   ]
 end
 ```

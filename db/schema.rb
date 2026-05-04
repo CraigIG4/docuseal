@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_16_100000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_04_000004) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gin"
   enable_extension "pg_catalog.plpgsql"
@@ -96,6 +96,62 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_16_100000) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "caf_approval_matrices", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.string "document_type", null: false
+    t.jsonb "stages_config", default: [], null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "document_type"], name: "idx_caf_approval_matrices_active_unique", unique: true, where: "(active = true)"
+    t.index ["account_id"], name: "index_caf_approval_matrices_on_account_id"
+  end
+
+  create_table "caf_stage_documents", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "document_name", null: false
+    t.string "document_uuid", null: false
+    t.boolean "internal_only", default: false, null: false
+    t.boolean "stripped", default: false, null: false
+    t.datetime "stripped_at"
+    t.bigint "submission_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["submission_id", "document_uuid"], name: "index_caf_stage_documents_on_submission_id_and_document_uuid", unique: true
+    t.index ["submission_id", "internal_only"], name: "index_caf_stage_documents_on_submission_id_and_internal_only"
+    t.index ["submission_id"], name: "index_caf_stage_documents_on_submission_id"
+  end
+
+  create_table "caf_stage_submitters", force: :cascade do |t|
+    t.bigint "caf_stage_id", null: false
+    t.datetime "created_at", null: false
+    t.integer "position", default: 0, null: false
+    t.string "role", null: false
+    t.bigint "submitter_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["caf_stage_id", "position"], name: "index_caf_stage_submitters_on_caf_stage_id_and_position"
+    t.index ["caf_stage_id", "submitter_id"], name: "index_caf_stage_submitters_on_caf_stage_id_and_submitter_id", unique: true
+    t.index ["caf_stage_id"], name: "index_caf_stage_submitters_on_caf_stage_id"
+    t.index ["submitter_id"], name: "index_caf_stage_submitters_on_submitter_id"
+  end
+
+  create_table "caf_stages", force: :cascade do |t|
+    t.datetime "activated_at"
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.integer "position", default: 0, null: false
+    t.string "routing", default: "ordered", null: false
+    t.string "status", default: "pending", null: false
+    t.boolean "strip_internal_on_complete", default: false, null: false
+    t.bigint "submission_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["status"], name: "index_caf_stages_on_status"
+    t.index ["submission_id", "position"], name: "index_caf_stages_on_submission_id_and_position", unique: true
+    t.index ["submission_id"], name: "index_caf_stages_on_submission_id"
+    t.check_constraint "routing::text = ANY (ARRAY['ordered'::character varying, 'parallel'::character varying, 'hybrid'::character varying]::text[])", name: "caf_stages_routing_check"
+    t.check_constraint "status::text = ANY (ARRAY['pending'::character varying, 'active'::character varying, 'complete'::character varying, 'skipped'::character varying]::text[])", name: "caf_stages_status_check"
   end
 
   create_table "completed_documents", force: :cascade do |t|
@@ -560,6 +616,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_16_100000) do
   add_foreign_key "account_linked_accounts", "accounts", column: "linked_account_id"
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "caf_approval_matrices", "accounts"
+  add_foreign_key "caf_stage_documents", "submissions"
+  add_foreign_key "caf_stage_submitters", "caf_stages"
+  add_foreign_key "caf_stage_submitters", "submitters"
+  add_foreign_key "caf_stages", "submissions"
   add_foreign_key "document_generation_events", "submitters"
   add_foreign_key "document_metadata", "accounts"
   add_foreign_key "dynamic_document_versions", "dynamic_documents"

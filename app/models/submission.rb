@@ -46,6 +46,9 @@ class Submission < ApplicationRecord
 
   has_many :submitters, dependent: :destroy
   has_many :submission_events, dependent: :destroy
+  # IGSIGN: CAF stage engine
+  has_many :caf_stages,          dependent: :destroy
+  has_many :caf_stage_documents, dependent: :destroy
 
   attribute :preferences, :string, default: -> { {} }
 
