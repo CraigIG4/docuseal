@@ -1,7 +1,7 @@
 <%# IGSIGN Landing / unauthenticated homepage %>
-<div class="min-h-screen -mt-0" style="background-color:#f5f7f9;">
+<div class="min-h-screen" style="background-color:#f5f7f9;">
 
-  <%# Hero %>
+  <%# Hero — Arctic Black gradient %>
   <section class="w-full py-20 text-center" style="background: linear-gradient(160deg, #162B3C 0%, #1e3a50 100%);">
     <div class="max-w-2xl mx-auto px-6">
       <div class="flex flex-col items-center">
@@ -12,12 +12,12 @@
         ECT Act&ndash;compliant signatures, and full document audit trails &mdash; built for
         the way Ignition Group actually works.
       </p>
-      <% if request.path == '/' && !signed_in? %>
+      <% if !signed_in? %>
         <div class="mt-10">
           <%= link_to new_user_session_path, class: 'inline-flex items-center gap-2 px-7 py-3 rounded font-semibold text-sm transition-all duration-150 hover:opacity-90',
-                style: 'background-color:#45AC34; color:#ffffff; letter-spacing:0.04em;' do %>
-            <%= svg_icon('login', class: 'w-4 h-4') %>
-            Sign In to IGSIGN
+                style: 'background-color:#45AC34; color:#ffffff; letter-spacing:0.04em; text-decoration:none;' do %>
+            <%= svg_icon('login', class: 'w-4 h-4 text-white') %>
+            <span>Sign In to IGSIGN</span>
           <% end %>
         </div>
       <% end %>
@@ -30,7 +30,7 @@
 
       <div class="bg-white rounded-xl p-6 border border-base-300 shadow-sm hover:shadow-md transition-shadow duration-200">
         <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style="background-color:#162B3C;">
-          <%= svg_icon('shield_check', class: 'w-5 h-5', style: 'color:#45AC34;') %>
+          <%= svg_icon('shield_check', class: 'w-5 h-5 text-white') %>
         </div>
         <h3 class="font-bold text-base mb-2" style="color:#162B3C;">ECT Act Compliant</h3>
         <p class="text-sm leading-relaxed" style="color:#7B787F;">
@@ -40,7 +40,7 @@
 
       <div class="bg-white rounded-xl p-6 border border-base-300 shadow-sm hover:shadow-md transition-shadow duration-200">
         <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style="background-color:#162B3C;">
-          <%= svg_icon('checks', class: 'w-5 h-5', style: 'color:#45AC34;') %>
+          <%= svg_icon('checks', class: 'w-5 h-5 text-white') %>
         </div>
         <h3 class="font-bold text-base mb-2" style="color:#162B3C;">Approval Workflows</h3>
         <p class="text-sm leading-relaxed" style="color:#7B787F;">
@@ -50,17 +50,17 @@
 
       <div class="bg-white rounded-xl p-6 border border-base-300 shadow-sm hover:shadow-md transition-shadow duration-200">
         <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style="background-color:#162B3C;">
-          <%= svg_icon('file_check', class: 'w-5 h-5', style: 'color:#45AC34;') %>
+          <%= svg_icon('file_text', class: 'w-5 h-5 text-white') %>
         </div>
         <h3 class="font-bold text-base mb-2" style="color:#162B3C;">Full Audit Trail</h3>
         <p class="text-sm leading-relaxed" style="color:#7B787F;">
-          Every open, view and signature event timestamped, IP-logged and stored in your PostgreSQL database.
+          Every open, view and signature event timestamped and stored in your PostgreSQL database.
         </p>
       </div>
 
       <div class="bg-white rounded-xl p-6 border border-base-300 shadow-sm hover:shadow-md transition-shadow duration-200">
         <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style="background-color:#162B3C;">
-          <%= svg_icon('lock', class: 'w-5 h-5', style: 'color:#45AC34;') %>
+          <%= svg_icon('lock', class: 'w-5 h-5 text-white') %>
         </div>
         <h3 class="font-bold text-base mb-2" style="color:#162B3C;">Self-Hosted &amp; Private</h3>
         <p class="text-sm leading-relaxed" style="color:#7B787F;">
@@ -72,7 +72,7 @@
   </section>
 
   <%# Footer tagline strip %>
-  <div class="w-full py-5 text-center border-t border-base-300" style="background-color:#162B3C;">
+  <div class="w-full py-5 text-center" style="background-color:#162B3C;">
     <span class="text-xs font-semibold tracking-widest uppercase" style="color:#45AC34;">
       Powered by Possibility
     </span>
