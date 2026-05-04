@@ -1,6 +1,13 @@
-<svg class="<%= local_assigns[:class] %>" height="<%= local_assigns.fetch(:height, '37') %>" viewBox="0 0 240 50" xmlns="http://www.w3.org/2000/svg" style="color: #1a2332">
-  <%# IGSIGN logo: IG hexagon mark + IGSIGN wordmark. Hexagon nods to Ignition Group brand. %>
-  <polygon points="22,4 38,13 38,32 22,41 6,32 6,13" fill="#1a2332" />
-  <text x="22" y="28" text-anchor="middle" fill="#ffffff" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" letter-spacing="-0.5">IG</text>
-  <text x="50" y="32" fill="currentColor" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="26" font-weight="700" letter-spacing="-0.8">IGSIGN</text>
+﻿<svg class="<%= local_assigns[:class] %>" height="<%= local_assigns.fetch(:height, '38') %>" viewBox="0 0 264 50" xmlns="http://www.w3.org/2000/svg" aria-label="IGSIGN — Ignition Group e-Signing Portal">
+  <!-- IG Hexagon mark — Arctic Black fill -->
+  <polygon points="24,3 42,13 42,33 24,43 6,33 6,13" fill="#162B3C"/>
+  <text x="24" y="30" text-anchor="middle" fill="#ffffff"
+        font-family="'DM Sans','Avenir',Arial,sans-serif"
+        font-size="14" font-weight="700" letter-spacing="-0.3">IG</text>
+  <!-- Wordmark: IGSIGN in Arctic Black -->
+  <text x="54" y="34" fill="#162B3C"
+        font-family="'DM Sans','Avenir',Arial,sans-serif"
+        font-size="27" font-weight="700" letter-spacing="-0.6">IGSIGN</text>
+  <!-- Innovation Green full-stop accent (per Brand Bible positioning-line spec) -->
+  <circle cx="255" cy="34" r="3.5" fill="#45AC34"/>
 </svg>

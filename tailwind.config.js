@@ -5,21 +5,21 @@ module.exports = {
   daisyui: {
     themes: [
       {
-        // IGSIGN brand theme — Ignition Group navy with blue accent.
+        // IGSIGN brand theme — Ignition Group CI, Brand Bible v1
         // Theme key kept as 'docuseal' to avoid hunting data-theme references across views.
         docuseal: {
           'color-scheme': 'light',
-          primary: '#1a2332',     // IG deep navy
-          secondary: '#2e3d54',   // IG mid navy
-          accent: '#3b82f6',      // IG accent blue
-          neutral: '#0f1419',     // near-black
-          'base-100': '#ffffff',  // page background
-          'base-200': '#f4f6f8',  // surface light
-          'base-300': '#e5e9ec',  // borders / dividers
-          'base-content': '#0f1419',
-          '--rounded-btn': '0.5rem',
+          primary: '#162B3C',      // Arctic Black  — PANTONE 303 C
+          secondary: '#7B787F',    // Cool Grey     — PANTONE Cool Grey 9 C
+          accent: '#45AC34',       // Innovation Green — PANTONE 361 C
+          neutral: '#0d1f2d',      // deep near-black for dark surfaces
+          'base-100': '#ffffff',   // page background
+          'base-200': '#f5f7f9',   // raised surface
+          'base-300': '#e8ebed',   // borders / dividers
+          'base-content': '#162B3C',
+          '--rounded-btn': '0.375rem',
           '--tab-border': '2px',
-          '--tab-radius': '.5rem'
+          '--tab-radius': '.375rem'
         }
       }
     ]
