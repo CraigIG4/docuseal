@@ -17,6 +17,11 @@
       <link href="<%= canonical_url %>" rel="canonical">
     <% end %>
     <%= stylesheet_pack_tag 'application', media: 'all' %>
+    <%# IGSIGN: global font override — DM Sans across all UI %>
+    <style>
+      *, *::before, *::after { font-family: 'DM Sans', 'Avenir', Arial, sans-serif !important; }
+      body { background-color: #f5f7f9; }
+    </style>
   </head>
   <body>
     <% if params[:modal].present? %>
@@ -29,7 +34,7 @@
     <turbo-frame id="drawer"></turbo-frame>
     <%= render 'shared/navbar' %>
     <% if flash.present? %><%= render 'shared/flash' %><% end %>
-    <div class="max-w-6xl mx-auto px-4 md:px-2 mb-8">
+    <div class="max-w-7xl mx-auto px-4 md:px-6 pb-10">
       <%= yield %>
     </div>
     <%= render 'shared/body_scripts' %>

@@ -11,8 +11,46 @@
       <%= javascript_pack_tag 'form', defer: true %>
     <% end %>
     <%= stylesheet_pack_tag 'form', media: 'all' %>
+    <%# IGSIGN: signing form — clean IG-branded experience for counterparties %>
+    <style>
+      *, *::before, *::after { font-family: 'DM Sans', 'Avenir', Arial, sans-serif !important; }
+      body { background-color: #f5f7f9; }
+      .igsign-form-header {
+        background-color: #162B3C;
+        padding: 12px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 3px solid #45AC34;
+      }
+      .igsign-form-footer {
+        text-align: center;
+        padding: 16px;
+        font-size: 11px;
+        color: #7B787F;
+        border-top: 1px solid #e8ebed;
+        margin-top: 32px;
+      }
+    </style>
   </head>
   <body>
+    <%# Signing form header: IG branding strip %>
+    <header class="igsign-form-header">
+      <%= render 'shared/logo', dark: true, height: '32' %>
+      <span style="color:rgba(255,255,255,0.6); font-size:12px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase;">
+        e-Signing Portal
+      </span>
+    </header>
+
     <%= yield %>
+
+    <%# Footer — replaces powered_by %>
+    <footer class="igsign-form-footer">
+      Ignition Group e-Signing Portal &mdash; IGSIGN &bull;
+      Digitally signed documents are legally binding under the
+      Electronic Communications and Transactions Act 25 of 2002 (South Africa)
+    </footer>
+
+    <%# Remove DocuSeal attribution from form pages — internal tool %>
   </body>
 </html>

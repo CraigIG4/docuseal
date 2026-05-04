@@ -1,13 +1,43 @@
-﻿<svg class="<%= local_assigns[:class] %>" height="<%= local_assigns.fetch(:height, '38') %>" viewBox="0 0 264 50" xmlns="http://www.w3.org/2000/svg" aria-label="IGSIGN — Ignition Group e-Signing Portal">
-  <!-- IG Hexagon mark — Arctic Black fill -->
-  <polygon points="24,3 42,13 42,33 24,43 6,33 6,13" fill="#162B3C"/>
-  <text x="24" y="30" text-anchor="middle" fill="#ffffff"
+<%
+  show_tagline = local_assigns.fetch(:tagline, false)
+  logo_height  = local_assigns.fetch(:height, show_tagline ? '52' : '38').to_s
+  dark_bg      = local_assigns.fetch(:dark, false)   # true when on Arctic Black navbar
+  hex_fill     = dark_bg ? '#ffffff' : '#162B3C'
+  text_fill    = dark_bg ? '#ffffff' : '#162B3C'
+  dot_fill     = '#45AC34'
+%>
+<svg class="<%= local_assigns[:class] %>"
+     height="<%= logo_height %>"
+     viewBox="0 0 <%= show_tagline ? '280' : '264' %> <%= show_tagline ? '62' : '50' %>"
+     xmlns="http://www.w3.org/2000/svg"
+     aria-label="IGSIGN — Ignition Group e-Signing Portal">
+
+  <%# IG Hexagon mark — bold geometric, slightly larger than before %>
+  <polygon points="22,2 40,12 40,32 22,42 4,32 4,12"
+           fill="<%= hex_fill %>"/>
+  <%# White IG letterform inside hex %>
+  <text x="22" y="28" text-anchor="middle"
+        fill="<%= dark_bg ? '#162B3C' : '#ffffff' %>"
         font-family="'DM Sans','Avenir',Arial,sans-serif"
-        font-size="14" font-weight="700" letter-spacing="-0.3">IG</text>
-  <!-- Wordmark: IGSIGN in Arctic Black -->
-  <text x="54" y="34" fill="#162B3C"
+        font-size="13" font-weight="800" letter-spacing="-0.5">IG</text>
+
+  <%# Innovation Green vertical rule separator %>
+  <line x1="50" y1="8" x2="50" y2="36"
+        stroke="<%= dot_fill %>" stroke-width="2" stroke-linecap="round"/>
+
+  <%# IGSIGN wordmark %>
+  <text x="60" y="32" fill="<%= text_fill %>"
         font-family="'DM Sans','Avenir',Arial,sans-serif"
-        font-size="27" font-weight="700" letter-spacing="-0.6">IGSIGN</text>
-  <!-- Innovation Green full-stop accent (per Brand Bible positioning-line spec) -->
-  <circle cx="255" cy="34" r="3.5" fill="#45AC34"/>
+        font-size="26" font-weight="800" letter-spacing="-1">IGSIGN</text>
+
+  <%# Innovation Green full-stop accent %>
+  <circle cx="<%= show_tagline ? '255' : '255' %>" cy="32" r="3.5" fill="<%= dot_fill %>"/>
+
+  <% if show_tagline %>
+    <%# Tagline: Powered by Possibility %>
+    <text x="60" y="54" fill="<%= dot_fill %>"
+          font-family="'DM Sans','Avenir',Arial,sans-serif"
+          font-size="9.5" font-weight="600" letter-spacing="0.12em"
+          text-transform="uppercase">POWERED BY POSSIBILITY</text>
+  <% end %>
 </svg>
