@@ -1,0 +1,23 @@
+:root {
+  --igsign-arctic-black: #162B3C;
+  --igsign-innovation-green: #45AC34;
+  --igsign-cool-grey: #7B787F;
+  --igsign-white: #FFFFFF;
+  --igsign-soft-navy: #0E2130;
+  --igsign-font: Avenir, Arial, sans-serif;
+}
+
+.igsign-dark-section {
+  background: var(--igsign-arctic-black);
+  color: var(--igsign-white);
+}
+
+.igsign-accent {
+  color: var(--igsign-innovation-green);
+}
+
+.igsign-tagline {
+  font-family: var(--igsign-font);
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}

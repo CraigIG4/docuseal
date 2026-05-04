@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="IGSIGN favicon">
+<rect width="64" height="64" rx="12" fill="#162B3C"/>
+<path d="M32 8 L52 20 L52 44 L32 56 L12 44 L12 20 Z" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linejoin="round"/>
+<text x="18" y="39" font-family="Avenir, Arial, sans-serif" font-weight="800" font-size="24" fill="#FFFFFF">iG</text>
+<path d="M42 43 L53 32 M42 43 L38 38" fill="none" stroke="#45AC34" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="19" cy="22" r="3" fill="#45AC34"/>
+</svg>

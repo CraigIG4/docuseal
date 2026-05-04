@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="260" viewBox="0 0 1200 260" role="img" aria-label="IGSIGN feature icons">
+<rect width="1200" height="260" fill="#162B3C"/>
+<g fill="none" stroke="#45AC34" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M110 75 L155 95 V135 C155 172 132 192 110 202 C88 192 65 172 65 135 V95 Z"/>
+  <path d="M92 137 L106 151 L132 119"/>
+  <path d="M375 88 C410 88 438 116 438 151"/>
+  <path d="M375 112 C397 112 414 129 414 151"/>
+  <path d="M375 136 C383 136 390 143 390 151"/>
+  <path d="M352 102 C342 115 337 132 337 151"/>
+  <path d="M630 82 L710 122 L630 162 L550 122 Z"/>
+  <path d="M550 158 L630 198 L710 158"/>
+  <path d="M550 194 L630 234 L710 194"/>
+  <path d="M960 70 L920 150 H970 L935 230 L1030 122 H980 Z"/>
+</g>
+<g font-family="Avenir, Arial, sans-serif" fill="#FFFFFF" font-weight="800" letter-spacing="4" font-size="24">
+  <text x="190" y="125">SECURE</text>
+  <text x="460" y="125">TRUSTED</text>
+  <text x="755" y="125">BUILT FOR</text>
+  <text x="1035" y="125">EXECUTION</text>
+</g>
+<g font-family="Avenir, Arial, sans-serif" fill="#7B787F" font-weight="500" letter-spacing="3" font-size="18">
+  <text x="190" y="158">BY DESIGN</text>
+  <text x="460" y="158">EVERY STEP</text>
+  <text x="755" y="158">THE ECOSYSTEM</text>
+  <text x="1035" y="158">THAT DELIVERS</text>
+</g>
+</svg>
