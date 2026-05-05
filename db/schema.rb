@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_04_000004) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_05_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gin"
   enable_extension "pg_catalog.plpgsql"
@@ -152,6 +152,34 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_04_000004) do
     t.index ["submission_id"], name: "index_caf_stages_on_submission_id"
     t.check_constraint "routing::text = ANY (ARRAY['ordered'::character varying, 'parallel'::character varying, 'hybrid'::character varying]::text[])", name: "caf_stages_routing_check"
     t.check_constraint "status::text = ANY (ARRAY['pending'::character varying, 'active'::character varying, 'complete'::character varying, 'skipped'::character varying]::text[])", name: "caf_stages_status_check"
+  end
+
+  create_table "caf_workflows", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.bigint "caf_submission_id"
+    t.string "caf_type", null: false
+    t.bigint "contract_submission_id"
+    t.string "contracting_party"
+    t.string "counterparty_email"
+    t.string "counterparty_name"
+    t.datetime "created_at", null: false
+    t.bigint "created_by_user_id", null: false
+    t.string "entity", null: false
+    t.text "high_level_summary"
+    t.string "ignition_company"
+    t.jsonb "long_form_data", default: {}
+    t.text "mandate_description"
+    t.string "requestor_email"
+    t.string "requestor_name"
+    t.jsonb "signatories", default: []
+    t.string "status", default: "draft", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "created_at"], name: "index_caf_workflows_on_account_id_and_created_at"
+    t.index ["account_id", "status"], name: "index_caf_workflows_on_account_id_and_status"
+    t.index ["account_id"], name: "index_caf_workflows_on_account_id"
+    t.index ["caf_submission_id"], name: "index_caf_workflows_on_caf_submission_id"
+    t.index ["contract_submission_id"], name: "index_caf_workflows_on_contract_submission_id"
+    t.index ["created_by_user_id"], name: "index_caf_workflows_on_created_by_user_id"
   end
 
   create_table "completed_documents", force: :cascade do |t|
@@ -621,6 +649,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_04_000004) do
   add_foreign_key "caf_stage_submitters", "caf_stages"
   add_foreign_key "caf_stage_submitters", "submitters"
   add_foreign_key "caf_stages", "submissions"
+  add_foreign_key "caf_workflows", "accounts"
+  add_foreign_key "caf_workflows", "submissions", column: "caf_submission_id"
+  add_foreign_key "caf_workflows", "submissions", column: "contract_submission_id"
+  add_foreign_key "caf_workflows", "users", column: "created_by_user_id"
   add_foreign_key "document_generation_events", "submitters"
   add_foreign_key "document_metadata", "accounts"
   add_foreign_key "dynamic_document_versions", "dynamic_documents"

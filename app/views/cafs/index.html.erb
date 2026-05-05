@@ -1,0 +1,85 @@
+<style>
+  .caf-stat-card { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 16px 22px; text-align: center; min-width: 90px; }
+  .caf-row:hover { background: #f8fafb; }
+</style>
+
+<%# ── IGSIGN CAF Header ── %>
+<div style="background:linear-gradient(135deg,#162B3C 0%,#1e3a4f 100%); border-radius:14px; padding:28px 32px; margin-bottom:28px; position:relative; overflow:hidden;">
+  <div style="position:absolute;inset:0;background-image:url('/brand/igsign-background-pattern.svg');background-size:cover;opacity:0.15;pointer-events:none;border-radius:14px;"></div>
+  <div style="position:relative;z-index:1;display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:20px;">
+    <div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.45);letter-spacing:4px;text-transform:uppercase;margin-bottom:8px;">IGSIGN · INTERNAL APPROVAL</div>
+      <div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-0.3px;">Contract Approval Forms</div>
+      <div style="width:36px;height:3px;background:#45AC34;border-radius:2px;margin-top:10px;"></div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.55);margin-top:8px;">Manage internal contract approvals before sending to counterparties</div>
+    </div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;">
+      <div class="caf-stat-card">
+        <div style="font-size:26px;font-weight:800;color:#fff;line-height:1;"><%= @stats[:total] %></div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:5px;">Total CAFs</div>
+      </div>
+      <div class="caf-stat-card" style="border-color:rgba(255,193,7,0.3);background:rgba(255,193,7,0.1);">
+        <div style="font-size:26px;font-weight:800;color:#ffc107;line-height:1;"><%= @stats[:pending] %></div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:5px;">Pending</div>
+      </div>
+      <div class="caf-stat-card" style="border-color:rgba(69,172,52,0.3);background:rgba(69,172,52,0.1);">
+        <div style="font-size:26px;font-weight:800;color:#45AC34;line-height:1;"><%= @stats[:complete] %></div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:5px;">Complete</div>
+      </div>
+      <%= link_to new_caf_path, style: 'background:#45AC34;color:#fff;border-radius:8px;padding:12px 20px;font-weight:700;font-size:14px;text-decoration:none;display:flex;align-items:center;gap:8px;white-space:nowrap;' do %>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+        New CAF
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<%# ── CAF List ── %>
+<div style="background:#fff;border-radius:14px;border:1px solid #edf0f3;overflow:hidden;box-shadow:0 2px 8px rgba(22,43,60,0.06);">
+  <% if @cafs.empty? %>
+    <div style="padding:60px;text-align:center;">
+      <div style="width:56px;height:56px;border-radius:50%;background:#f0f2f5;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9aa3ae" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+      </div>
+      <div style="font-size:16px;font-weight:700;color:#162B3C;margin-bottom:8px;">No CAFs yet</div>
+      <div style="font-size:13px;color:#7B787F;margin-bottom:24px;">Create your first Contract Approval Form to get started.</div>
+      <%= link_to 'Create CAF', new_caf_path, style: 'background:#162B3C;color:#fff;border-radius:8px;padding:10px 20px;font-weight:700;font-size:14px;text-decoration:none;' %>
+    </div>
+  <% else %>
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr style="border-bottom:2px solid #edf0f3;">
+          <th style="padding:14px 20px;text-align:left;font-size:11px;font-weight:700;color:#7B787F;letter-spacing:1px;text-transform:uppercase;">Contract Party</th>
+          <th style="padding:14px 12px;text-align:left;font-size:11px;font-weight:700;color:#7B787F;letter-spacing:1px;text-transform:uppercase;">Type</th>
+          <th style="padding:14px 12px;text-align:left;font-size:11px;font-weight:700;color:#7B787F;letter-spacing:1px;text-transform:uppercase;">Entity</th>
+          <th style="padding:14px 12px;text-align:left;font-size:11px;font-weight:700;color:#7B787F;letter-spacing:1px;text-transform:uppercase;">Status</th>
+          <th style="padding:14px 12px;text-align:left;font-size:11px;font-weight:700;color:#7B787F;letter-spacing:1px;text-transform:uppercase;">Created</th>
+          <th style="padding:14px 12px;text-align:left;font-size:11px;font-weight:700;color:#7B787F;letter-spacing:1px;text-transform:uppercase;">By</th>
+          <th style="padding:14px 12px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @cafs.each do |caf| %>
+          <tr class="caf-row" style="border-bottom:1px solid #f5f7f9;cursor:pointer;" onclick="location.href='<%= caf_path(caf) %>'">
+            <td style="padding:14px 20px;">
+              <div style="font-size:14px;font-weight:700;color:#162B3C;"><%= caf.contracting_party.presence || '—' %></div>
+              <div style="font-size:12px;color:#7B787F;margin-top:2px;"><%= caf.counterparty_email.presence || '' %></div>
+            </td>
+            <td style="padding:14px 12px;">
+              <span style="font-size:12px;background:#f0f4f8;color:#162B3C;padding:3px 10px;border-radius:20px;font-weight:600;"><%= caf.caf_type_label %></span>
+            </td>
+            <td style="padding:14px 12px;font-size:13px;color:#162B3C;"><%= caf.entity_name %></td>
+            <td style="padding:14px 12px;">
+              <span class="badge <%= caf.status_badge_class %>" style="font-size:11px;"><%= caf.status_label %></span>
+            </td>
+            <td style="padding:14px 12px;font-size:12px;color:#7B787F;"><%= caf.created_at.strftime('%d %b %Y') %></td>
+            <td style="padding:14px 12px;font-size:12px;color:#7B787F;"><%= caf.created_by_user&.name %></td>
+            <td style="padding:14px 12px;text-align:right;">
+              <%= link_to 'View', caf_path(caf), style: 'font-size:12px;color:#45AC34;font-weight:600;text-decoration:none;' %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</div>

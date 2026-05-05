@@ -1,3 +1,24 @@
+# == Schema Information
+#
+# Table name: caf_approval_matrices
+#
+#  id            :bigint           not null, primary key
+#  active        :boolean          default(TRUE), not null
+#  document_type :string           not null
+#  stages_config :jsonb            not null
+#  created_at    :datetime         not null
+#  updated_at    :datetime         not null
+#  account_id    :bigint           not null
+#
+# Indexes
+#
+#  idx_caf_approval_matrices_active_unique    (account_id,document_type) UNIQUE WHERE (active = true)
+#  index_caf_approval_matrices_on_account_id  (account_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (account_id => accounts.id)
+#
 require 'rails_helper'
 
 RSpec.describe CafApprovalMatrix, type: :model do

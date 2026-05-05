@@ -1,3 +1,29 @@
+# == Schema Information
+#
+# Table name: caf_stages
+#
+#  id                         :bigint           not null, primary key
+#  activated_at               :datetime
+#  completed_at               :datetime
+#  name                       :string           not null
+#  position                   :integer          default(0), not null
+#  routing                    :string           default("ordered"), not null
+#  status                     :string           default("pending"), not null
+#  strip_internal_on_complete :boolean          default(FALSE), not null
+#  created_at                 :datetime         not null
+#  updated_at                 :datetime         not null
+#  submission_id              :bigint           not null
+#
+# Indexes
+#
+#  index_caf_stages_on_status                      (status)
+#  index_caf_stages_on_submission_id               (submission_id)
+#  index_caf_stages_on_submission_id_and_position  (submission_id,position) UNIQUE
+#
+# Foreign Keys
+#
+#  fk_rails_...  (submission_id => submissions.id)
+#
 require 'rails_helper'
 
 RSpec.describe CafStage, type: :model do

@@ -1,3 +1,27 @@
+# == Schema Information
+#
+# Table name: caf_stage_documents
+#
+#  id            :bigint           not null, primary key
+#  document_name :string           not null
+#  document_uuid :string           not null
+#  internal_only :boolean          default(FALSE), not null
+#  stripped      :boolean          default(FALSE), not null
+#  stripped_at   :datetime
+#  created_at    :datetime         not null
+#  updated_at    :datetime         not null
+#  submission_id :bigint           not null
+#
+# Indexes
+#
+#  index_caf_stage_documents_on_submission_id                    (submission_id)
+#  index_caf_stage_documents_on_submission_id_and_document_uuid  (submission_id,document_uuid) UNIQUE
+#  index_caf_stage_documents_on_submission_id_and_internal_only  (submission_id,internal_only)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (submission_id => submissions.id)
+#
 require 'rails_helper'
 
 RSpec.describe CafStageDocument, type: :model do

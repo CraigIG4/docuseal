@@ -1,0 +1,381 @@
+<style>
+  body { background: #f5f7f9 !important; }
+  .caf-step { display: none; }
+  .caf-step.active { display: block; }
+  .step-indicator { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; flex-shrink: 0; }
+  .step-done { background: #45AC34; color: #fff; }
+  .step-active { background: #162B3C; color: #fff; }
+  .step-pending { background: #e2e6ea; color: #9aa3ae; }
+  .sig-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #f8fafb; border: 1px solid #edf0f3; border-radius: 8px; margin-bottom: 8px; }
+  .field-label { font-size: 13px; font-weight: 600; color: #162B3C; margin-bottom: 6px; display: block; }
+  .field-input { width: 100%; padding: 10px 14px; border: 1.5px solid #e2e6ea; border-radius: 8px; font-size: 14px; color: #162B3C; background: #f9fbfc; box-sizing: border-box; }
+  .field-input:focus { border-color: #162B3C; outline: none; }
+  select.field-input { cursor: pointer; }
+</style>
+
+<div style="min-height:100vh; padding:32px 16px;">
+  <div style="max-width:760px; margin:0 auto;">
+
+    <%# Header %>
+    <div style="margin-bottom:28px; display:flex; align-items:center; gap:16px;">
+      <%= link_to cafs_path, style: 'color:#7B787F; text-decoration:none; font-size:13px; display:flex; align-items:center; gap:4px;' do %>
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg> Back to CAFs
+      <% end %>
+    </div>
+
+    <div style="background:#fff; border-radius:16px; border:1px solid #edf0f3; box-shadow:0 4px 24px rgba(22,43,60,0.08); overflow:hidden;">
+
+      <%# Wizard header %>
+      <div style="background:linear-gradient(135deg,#162B3C,#1e3a4f); padding:24px 32px;">
+        <div style="font-size:11px; color:rgba(255,255,255,0.45); letter-spacing:4px; text-transform:uppercase; margin-bottom:6px;">NEW CONTRACT APPROVAL FORM</div>
+        <div style="font-size:18px; font-weight:800; color:#fff;" id="wizard-title">Step 1 — Select Type &amp; Entity</div>
+        <%# Step indicators %>
+        <div style="display:flex; gap:8px; margin-top:16px; align-items:center;">
+          <% ['Type & Entity', 'Contract Details', 'Signatories', 'Upload & Submit'].each_with_index do |label, i| %>
+            <div style="display:flex; align-items:center; gap:8px;" id="step-nav-<%= i+1 %>">
+              <div class="step-indicator <%= i == 0 ? 'step-active' : 'step-pending' %>" id="step-dot-<%= i+1 %>"><%= i+1 %></div>
+              <span style="font-size:12px; color:rgba(255,255,255,<%= i == 0 ? '0.9' : '0.4' %>);" id="step-label-<%= i+1 %>"><%= label %></span>
+            </div>
+            <% unless i == 3 %>
+              <div style="flex:1; height:1px; background:rgba(255,255,255,0.15); max-width:40px;"></div>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+
+      <%# Form %>
+      <%= form_with model: @caf, url: cafs_path, local: false, id: 'caf-form',
+          html: { enctype: 'multipart/form-data' },
+          data: { turbo: false } do |f| %>
+
+        <%# ── STEP 1: Type & Entity ── %>
+        <div class="caf-step active" id="step-1" style="padding:32px;">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+            <div>
+              <label class="field-label">CAF Type <span style="color:#e53e3e;">*</span></label>
+              <select name="caf_workflow[caf_type]" id="caf_type" class="field-input" required onchange="onTypeOrEntityChange()">
+                <option value="">— Select type —</option>
+                <option value="nda">NDA (Non-Disclosure Agreement)</option>
+                <option value="short_form">Short Form CAF</option>
+                <option value="long_form">Long Form CAF (Commercial Agreement)</option>
+              </select>
+              <div id="type-description" style="font-size:11.5px; color:#7B787F; margin-top:6px; line-height:1.5;"></div>
+            </div>
+            <div>
+              <label class="field-label">Ignition Entity <span style="color:#e53e3e;">*</span></label>
+              <select name="caf_workflow[entity]" id="entity" class="field-input" required onchange="onTypeOrEntityChange()">
+                <option value="">— Select entity —</option>
+                <% IgSignatories::ENTITIES.each do |key, data| %>
+                  <option value="<%= key %>"><%= data[:name] %></option>
+                <% end %>
+              </select>
+            </div>
+          </div>
+          <div style="margin-top:24px; text-align:right;">
+            <button type="button" onclick="goToStep(2)" style="background:#162B3C; color:#fff; border:none; border-radius:8px; padding:12px 28px; font-size:14px; font-weight:700; cursor:pointer;">
+              Continue →
+            </button>
+          </div>
+        </div>
+
+        <%# ── STEP 2: Contract Details ── %>
+        <div class="caf-step" id="step-2" style="padding:32px;">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px;">
+            <div>
+              <label class="field-label">Requestor Name</label>
+              <%= f.text_field :requestor_name, class: 'field-input', placeholder: 'Full name' %>
+            </div>
+            <div>
+              <label class="field-label">Requestor Email</label>
+              <%= f.email_field :requestor_email, class: 'field-input', placeholder: 'email@ignitiongroup.co.za' %>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px;">
+            <div>
+              <label class="field-label">Contracting Party (Counterparty Name) <span style="color:#e53e3e;">*</span></label>
+              <%= f.text_field :contracting_party, class: 'field-input', placeholder: 'e.g. Acme Corp Pty Ltd', required: true %>
+            </div>
+            <div>
+              <label class="field-label">Ignition Company</label>
+              <%= f.text_field :ignition_company, class: 'field-input', placeholder: 'e.g. Comit Technologies', id: 'ignition_company_field' %>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px;">
+            <div>
+              <label class="field-label">Counterparty Contact Name</label>
+              <%= f.text_field :counterparty_name, class: 'field-input', placeholder: 'Authorised signatory name' %>
+            </div>
+            <div>
+              <label class="field-label">Counterparty Email <span style="color:#e53e3e;">*</span></label>
+              <%= f.email_field :counterparty_email, class: 'field-input', placeholder: 'signatory@counterparty.com', required: true %>
+            </div>
+          </div>
+          <div style="margin-bottom:20px;">
+            <label class="field-label">High Level Summary <span style="color:#e53e3e;">*</span></label>
+            <%= f.text_area :high_level_summary, class: 'field-input', rows: 4,
+                placeholder: 'Briefly describe the purpose and nature of this agreement...', required: true,
+                style: 'resize:vertical; min-height:100px;' %>
+          </div>
+          <%# NDA mandate description field %>
+          <div id="mandate-desc-section" style="display:none; margin-bottom:20px;">
+            <label class="field-label">NDA Purpose / Mandate Description</label>
+            <%= f.text_area :mandate_description, class: 'field-input', rows: 3,
+                placeholder: 'e.g. Ignition is in discussions with XXX for purposes of onboarding XXX as a client/supplier...',
+                style: 'resize:vertical;' %>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-top:24px;">
+            <button type="button" onclick="goToStep(1)" style="background:#f0f2f5; color:#162B3C; border:none; border-radius:8px; padding:12px 24px; font-size:14px; font-weight:600; cursor:pointer;">← Back</button>
+            <button type="button" onclick="goToStep(3)" style="background:#162B3C; color:#fff; border:none; border-radius:8px; padding:12px 28px; font-size:14px; font-weight:700; cursor:pointer;">Continue →</button>
+          </div>
+        </div>
+
+        <%# ── STEP 3: Signatories ── %>
+        <div class="caf-step" id="step-3" style="padding:32px;">
+          <div style="margin-bottom:16px;">
+            <div style="font-size:14px; font-weight:700; color:#162B3C; margin-bottom:4px;">Signing Chain</div>
+            <div style="font-size:12px; color:#7B787F;">Auto-assigned based on entity and CAF type. You can modify below.</div>
+          </div>
+
+          <div id="signatories-list" style="margin-bottom:20px;">
+            <div style="text-align:center; padding:20px; color:#9aa3ae; font-size:13px;" id="sig-placeholder">Select entity and type in Step 1 to load signatories</div>
+          </div>
+
+          <%# Hidden field to store the JSON signatories array %>
+          <input type="hidden" name="caf_workflow[custom_signatories]" id="signatories-json" value="[]">
+
+          <%# BU Head override (shown when there's a placeholder) %>
+          <div id="bu-head-section" style="display:none; background:#fffbf0; border:1px solid #ffc107; border-radius:10px; padding:16px; margin-bottom:20px;">
+            <div style="font-size:13px; font-weight:700; color:#162B3C; margin-bottom:12px;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffc107" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; margin-right:4px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              Assign BU Head / Requestor
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+              <div>
+                <label class="field-label" style="font-size:12px;">Full Name</label>
+                <input type="text" name="caf_workflow[bu_head_name]" id="bu_head_name" class="field-input" placeholder="e.g. William Talbot">
+              </div>
+              <div>
+                <label class="field-label" style="font-size:12px;">Email</label>
+                <input type="email" name="caf_workflow[bu_head_email]" id="bu_head_email" class="field-input" placeholder="email@ignitiongroup.co.za">
+              </div>
+            </div>
+          </div>
+
+          <%# Add custom signatory %>
+          <div style="border-top:1px solid #f0f2f5; padding-top:16px;">
+            <div style="font-size:12px; font-weight:600; color:#7B787F; margin-bottom:10px;">Add additional signatory</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr auto; gap:10px; align-items:end;">
+              <div>
+                <label class="field-label" style="font-size:12px;">Name</label>
+                <input type="text" id="add-sig-name" class="field-input" placeholder="Full name">
+              </div>
+              <div>
+                <label class="field-label" style="font-size:12px;">Email</label>
+                <input type="email" id="add-sig-email" class="field-input" placeholder="email@...">
+              </div>
+              <button type="button" onclick="addCustomSignatory()" style="background:#45AC34; color:#fff; border:none; border-radius:8px; padding:10px 16px; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap;">+ Add</button>
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; margin-top:24px;">
+            <button type="button" onclick="goToStep(2)" style="background:#f0f2f5; color:#162B3C; border:none; border-radius:8px; padding:12px 24px; font-size:14px; font-weight:600; cursor:pointer;">← Back</button>
+            <button type="button" onclick="goToStep(4)" style="background:#162B3C; color:#fff; border:none; border-radius:8px; padding:12px 28px; font-size:14px; font-weight:700; cursor:pointer;">Continue →</button>
+          </div>
+        </div>
+
+        <%# ── STEP 4: Upload & Submit ── %>
+        <div class="caf-step" id="step-4" style="padding:32px;">
+          <div style="margin-bottom:24px;">
+            <label class="field-label">Contract Document <span style="color:#e53e3e;">*</span></label>
+            <div style="border:2px dashed #e2e6ea; border-radius:10px; padding:32px; text-align:center; background:#f9fbfc;" id="drop-zone">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9aa3ae" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 12px; display:block;"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+              <div style="font-size:14px; color:#162B3C; font-weight:600; margin-bottom:6px;">Upload the contract document</div>
+              <div style="font-size:12px; color:#7B787F; margin-bottom:16px;">PDF or Word document (.pdf, .docx)</div>
+              <%= f.file_field :contract_document, accept: '.pdf,.doc,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                  style: 'display:none;', id: 'contract-file-input', onchange: 'onFileSelected(this)' %>
+              <label for="contract-file-input" style="background:#162B3C; color:#fff; border-radius:8px; padding:10px 20px; font-size:13px; font-weight:700; cursor:pointer; display:inline-block;">Choose File</label>
+              <div id="file-name" style="margin-top:12px; font-size:13px; color:#45AC34; font-weight:600;"></div>
+            </div>
+          </div>
+
+          <%# Summary card %>
+          <div style="background:#f8fafb; border:1px solid #edf0f3; border-radius:10px; padding:20px; margin-bottom:24px;">
+            <div style="font-size:13px; font-weight:700; color:#162B3C; margin-bottom:12px;">Review Summary</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+              <div style="font-size:12px; color:#7B787F;">Type:</div>
+              <div style="font-size:12px; color:#162B3C; font-weight:600;" id="review-type">—</div>
+              <div style="font-size:12px; color:#7B787F;">Entity:</div>
+              <div style="font-size:12px; color:#162B3C; font-weight:600;" id="review-entity">—</div>
+              <div style="font-size:12px; color:#7B787F;">Counterparty:</div>
+              <div style="font-size:12px; color:#162B3C; font-weight:600;" id="review-party">—</div>
+              <div style="font-size:12px; color:#7B787F;">Signatories:</div>
+              <div style="font-size:12px; color:#162B3C; font-weight:600;" id="review-sigs">—</div>
+            </div>
+          </div>
+
+          <div style="background:linear-gradient(135deg,#162B3C,#1e3a4f); border-radius:10px; padding:14px 16px; display:flex; align-items:center; gap:12px; margin-bottom:24px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#45AC34" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
+            <div style="font-size:12px; color:rgba(255,255,255,0.75); line-height:1.5;">
+              This CAF will be saved as a <strong style="color:#fff;">draft</strong>. You can review and submit it for IG approval from the detail page. ECT Act 25 of 2002 compliant.
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:space-between;">
+            <button type="button" onclick="goToStep(3)" style="background:#f0f2f5; color:#162B3C; border:none; border-radius:8px; padding:12px 24px; font-size:14px; font-weight:600; cursor:pointer;">← Back</button>
+            <button type="submit" id="submit-btn" style="background:#45AC34; color:#fff; border:none; border-radius:8px; padding:12px 32px; font-size:15px; font-weight:800; cursor:pointer;">
+              Save CAF Draft
+            </button>
+          </div>
+        </div>
+
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<script>
+const TYPE_DESCRIPTIONS = {
+  nda: 'Used for Non-Disclosure Agreements only. Requires approval from the Department Head and Craig Lawrence (CLO).',
+  short_form: 'Used for Letters, Addendums, Variation Schedules and Compliance documents. Department Head + Final signatory.',
+  long_form: 'Used for all new commercial agreements (MSAs, Client/Supplier Agreements). Requires full approval chain including Procurement, Finance, Legal, CFO, COO and CEO.',
+};
+
+const ENTITY_NAMES = {
+  iti: 'Ignition Telecoms Investments',
+  comit: 'Comit Technologies',
+  mvnx: 'MVNX',
+  uconnect: 'UConnect Mobile',
+  ignition_digital: 'Ignition Digital LLC',
+  ifs: 'IFS (Viva Cover / Viva Life)',
+  gumtree: 'Gumtree',
+  spot: 'Spot',
+  ig_group: 'Ignition Group (General)',
+};
+
+let currentStep = 1;
+let signatories = [];
+
+function goToStep(step) {
+  document.querySelectorAll('.caf-step').forEach(el => el.classList.remove('active'));
+  document.getElementById('step-' + step).classList.add('active');
+
+  const titles = ['', 'Step 1 — Select Type & Entity', 'Step 2 — Contract Details', 'Step 3 — Signatories', 'Step 4 — Upload & Submit'];
+  document.getElementById('wizard-title').textContent = titles[step];
+
+  for (let i = 1; i <= 4; i++) {
+    const dot = document.getElementById('step-dot-' + i);
+    const lbl = document.getElementById('step-label-' + i);
+    dot.className = 'step-indicator ' + (i < step ? 'step-done' : (i === step ? 'step-active' : 'step-pending'));
+    lbl.style.color = i <= step ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.4)';
+  }
+
+  currentStep = step;
+  if (step === 4) updateReviewSummary();
+}
+
+function onTypeOrEntityChange() {
+  const type = document.getElementById('caf_type').value;
+  const entity = document.getElementById('entity').value;
+  const descEl = document.getElementById('type-description');
+  descEl.textContent = TYPE_DESCRIPTIONS[type] || '';
+
+  // Auto-fill ignition company
+  if (entity && ENTITY_NAMES[entity]) {
+    document.getElementById('ignition_company_field').value = ENTITY_NAMES[entity];
+  }
+
+  // Show/hide mandate description
+  document.getElementById('mandate-desc-section').style.display = type === 'nda' ? 'block' : 'none';
+
+  if (type && entity) loadSignatories(type, entity);
+}
+
+function loadSignatories(type, entity) {
+  fetch('/cafs/signatories_for?caf_type=' + type + '&entity=' + entity)
+    .then(r => r.json())
+    .then(data => {
+      signatories = data.map((s, i) => ({ ...s, position: i }));
+      renderSignatories();
+      updateSignatoriesJson();
+    })
+    .catch(() => {});
+}
+
+function renderSignatories() {
+  const list = document.getElementById('signatories-list');
+  const hasPlaceholder = signatories.some(s => s.placeholder);
+  document.getElementById('bu-head-section').style.display = hasPlaceholder ? 'block' : 'none';
+
+  if (!signatories.length) {
+    list.innerHTML = '<div style="text-align:center;padding:20px;color:#9aa3ae;font-size:13px;">Select entity and type to load signatories</div>';
+    return;
+  }
+
+  list.innerHTML = signatories.map((sig, idx) => {
+    const isPlaceholder = sig.placeholder;
+    const nameDisplay = isPlaceholder ? '<em style="color:#ffc107;">To be assigned (BU Head)</em>' : (sig.name || '');
+    const emailDisplay = isPlaceholder ? '' : (sig.email || '');
+    return `
+      <div class="sig-row" id="sig-row-${idx}">
+        <div style="width:28px;height:28px;border-radius:50%;background:#162B3C;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;">${idx+1}</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:700;color:#162B3C;">${nameDisplay}</div>
+          <div style="font-size:11px;color:#7B787F;">${sig.role || ''}${emailDisplay ? ' · ' + emailDisplay : ''}</div>
+        </div>
+        <button type="button" onclick="removeSignatory(${idx})" style="background:none;border:none;color:#e53e3e;cursor:pointer;font-size:18px;padding:0 4px;line-height:1;">×</button>
+      </div>`;
+  }).join('');
+}
+
+function removeSignatory(idx) {
+  signatories.splice(idx, 1);
+  signatories.forEach((s, i) => s.position = i);
+  renderSignatories();
+  updateSignatoriesJson();
+}
+
+function addCustomSignatory() {
+  const name = document.getElementById('add-sig-name').value.trim();
+  const email = document.getElementById('add-sig-email').value.trim();
+  if (!name || !email) { alert('Please enter both name and email.'); return; }
+  signatories.push({ name, email, role: 'Additional Signatory', placeholder: false, position: signatories.length, key: 'custom' });
+  renderSignatories();
+  updateSignatoriesJson();
+  document.getElementById('add-sig-name').value = '';
+  document.getElementById('add-sig-email').value = '';
+}
+
+function updateSignatoriesJson() {
+  // Apply BU head values if provided
+  const buName = document.getElementById('bu_head_name').value.trim();
+  const buEmail = document.getElementById('bu_head_email').value.trim();
+  const resolved = signatories.map(s => {
+    if (s.placeholder && buName && buEmail) {
+      return { ...s, name: buName, email: buEmail, placeholder: false };
+    }
+    return s;
+  });
+  document.getElementById('signatories-json').value = JSON.stringify(resolved);
+}
+
+function onFileSelected(input) {
+  const file = input.files[0];
+  document.getElementById('file-name').textContent = file ? '✓ ' + file.name : '';
+}
+
+function updateReviewSummary() {
+  const type = document.getElementById('caf_type');
+  const entity = document.getElementById('entity');
+  const party = document.querySelector('[name="caf_workflow[contracting_party]"]');
+  document.getElementById('review-type').textContent = type.options[type.selectedIndex]?.text || '—';
+  document.getElementById('review-entity').textContent = entity.options[entity.selectedIndex]?.text || '—';
+  document.getElementById('review-party').textContent = party?.value || '—';
+  const nonPlaceholder = signatories.filter(s => !s.placeholder || document.getElementById('bu_head_name').value);
+  document.getElementById('review-sigs').textContent = nonPlaceholder.length + ' signatories';
+  updateSignatoriesJson();
+}
+
+// Update signatories json whenever BU head changes
+document.getElementById('bu_head_name')?.addEventListener('input', updateSignatoriesJson);
+document.getElementById('bu_head_email')?.addEventListener('input', updateSignatoriesJson);
+</script>

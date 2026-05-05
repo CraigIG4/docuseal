@@ -1,0 +1,99 @@
+<%# IGSIGN CAF Detail View %>
+<div style="max-width:860px; margin:0 auto; padding:24px 16px;">
+
+  <%# Back + Actions bar %>
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:12px;">
+    <%= link_to cafs_path, style: "color:#7B787F;text-decoration:none;font-size:13px;display:flex;align-items:center;gap:4px;" do %>
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      All CAFs
+    <% end %>
+    <div style="display:flex; gap:10px;">
+      <% if @caf.draft? %>
+        <%= button_to submit_caf_path(@caf), method: :post,
+            style: "background:#45AC34;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:14px;font-weight:700;cursor:pointer;",
+            form: { data: { turbo: false } } do %>
+          Submit for IG Approval
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <%# Status header %>
+  <div style="background:linear-gradient(135deg,#162B3C,#1e3a4f);border-radius:14px;padding:24px 28px;margin-bottom:24px;">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+      <div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:3px;text-transform:uppercase;margin-bottom:6px;"><%= @caf.caf_type_label %></div>
+        <div style="font-size:20px;font-weight:800;color:#fff;"><%= @caf.contracting_party.presence || "Untitled CAF" %></div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.55);margin-top:4px;"><%= @caf.entity_name %></div>
+        <div style="width:32px;height:3px;background:#45AC34;border-radius:2px;margin-top:10px;"></div>
+      </div>
+      <span class="badge <%= @caf.status_badge_class %>" style="font-size:13px;padding:8px 16px;"><%= @caf.status_label %></span>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+    <%# CAF Details card %>
+    <div style="background:#fff;border-radius:12px;border:1px solid #edf0f3;padding:20px;">
+      <div style="font-size:12px;font-weight:700;color:#7B787F;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;">CAF Details</div>
+      <% [
+        ['Requestor',         @caf.requestor_name],
+        ['Requestor Email',   @caf.requestor_email],
+        ['Ignition Company',  @caf.ignition_company],
+        ['Contracting Party', @caf.contracting_party],
+        ['Counterparty Email',@caf.counterparty_email],
+        ['Date Prepared',     @caf.created_at.strftime("%d %b %Y")],
+        ['Created By',        @caf.created_by_user&.name],
+      ].each do |label, value| %>
+        <% next if value.blank? %>
+        <div style="display:flex;gap:8px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #f5f7f9;">
+          <div style="font-size:12px;color:#7B787F;width:140px;flex-shrink:0;"><%= label %></div>
+          <div style="font-size:13px;color:#162B3C;font-weight:600;"><%= value %></div>
+        </div>
+      <% end %>
+    </div>
+
+    <%# Signatories card %>
+    <div style="background:#fff;border-radius:12px;border:1px solid #edf0f3;padding:20px;">
+      <div style="font-size:12px;font-weight:700;color:#7B787F;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;">Signing Chain</div>
+      <% Array(@caf.signatories).each_with_index do |sig, idx| %>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <div style="width:26px;height:26px;border-radius:50%;background:#162B3C;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;"><%= idx+1 %></div>
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:700;color:#162B3C;"><%= sig["name"].presence || "<em style=color:#ffc107>Not assigned</em>".html_safe %></div>
+            <div style="font-size:11px;color:#7B787F;"><%= sig["role"] %><% if sig["email"].present? %> · <%= sig["email"] %><% end %></div>
+          </div>
+        </div>
+        <% unless idx == @caf.signatories.length - 1 %>
+          <div style="margin-left:13px;width:1px;height:8px;background:linear-gradient(180deg,#162B3C,#45AC34);margin-bottom:4px;"></div>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <%# Summary %>
+  <% if @caf.high_level_summary.present? %>
+    <div style="background:#fff;border-radius:12px;border:1px solid #edf0f3;padding:20px;margin-bottom:20px;">
+      <div style="font-size:12px;font-weight:700;color:#7B787F;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;">High Level Summary</div>
+      <div style="font-size:14px;color:#162B3C;line-height:1.7;"><%= @caf.high_level_summary %></div>
+    </div>
+  <% end %>
+
+  <%# Contract document %>
+  <% if @caf.contract_document.attached? %>
+    <div style="background:#fff;border-radius:12px;border:1px solid #edf0f3;padding:20px;margin-bottom:20px;">
+      <div style="font-size:12px;font-weight:700;color:#7B787F;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;">Contract Document</div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#45AC34" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span style="font-size:14px;color:#162B3C;font-weight:600;"><%= @caf.contract_document.filename %></span>
+        <%= link_to "Download", rails_blob_path(@caf.contract_document, disposition: :attachment), style: "margin-left:auto;font-size:12px;color:#45AC34;font-weight:700;text-decoration:none;" %>
+      </div>
+    </div>
+  <% end %>
+
+  <%# ECT badge %>
+  <div style="background:linear-gradient(135deg,#162B3C,#1e3a4f);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#45AC34" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
+    <div style="font-size:12px;color:rgba(255,255,255,0.7);">ECT Act 25 of 2002 Compliant &nbsp;·&nbsp; IGSIGN Internal &nbsp;·&nbsp; Full audit trail on completion</div>
+  </div>
+
+</div>
