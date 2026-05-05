@@ -77,7 +77,7 @@
       <a
         v-if="isDemo"
         target="_blank"
-        href="https://github.com/docusealco/docuseal"
+        href="https://sign.ignitiongroup.co.za"
         class="white-button flex items-center space-x-1 w-full"
       >
         <IconBrandGithub />
@@ -87,7 +87,7 @@
       </a>
       <a
         v-if="isDemo"
-        href="https://docuseal.com/sign_up"
+        href="https://sign.ignitiongroup.co.za"
         class="white-button flex items-center space-x-1 w-full"
       >
         <IconLogin />
@@ -102,10 +102,10 @@
     >
       {{ t('powered_by') }}
       <a
-        href="https://www.docuseal.com/start"
+        href="https://sign.ignitiongroup.co.za"
         target="_blank"
         class="underline"
-      >DocuSeal</a> - {{ t('open_source_documents_software') }}
+      >IGSIGN</a> — Ignition Group e-Signing Portal
     </div>
   </div>
 </template>
