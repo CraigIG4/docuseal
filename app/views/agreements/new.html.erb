@@ -1,295 +1,137 @@
 <% content_for :title, 'New Agreement' %>
-
-<div class="max-w-4xl mx-auto px-4 py-8">
-
-  <%# ── Step indicator ──────────────────────────────────────────────────── %>
-  <div class="flex items-center mb-8">
+<div class="max-w-5xl mx-auto px-4 py-8">
+  <div style="display:flex;align-items:center;margin-bottom:2rem;">
     <% [['1','Agreement Details'],['2','Upload Document'],['3','Review & Send']].each_with_index do |(n,label),i| %>
-      <div class="flex items-center gap-2">
-        <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0
-             <%= @step.to_i >= n.to_i ? 'text-white' : 'text-gray-400 border-2 border-gray-200 bg-white' %>"
-             style="<%= @step.to_i >= n.to_i ? 'background-color:#1a2332;' : '' %>">
-          <%= n %>
-        </div>
-        <span class="text-sm whitespace-nowrap
-             <%= @step.to_i == n.to_i ? 'font-semibold text-gray-900' : 'text-gray-400' %>">
-          <%= label %>
-        </span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;background-color:<%= @step.to_i >= n.to_i ? '#162B3C' : 'white' %>;color:<%= @step.to_i >= n.to_i ? 'white' : '#9ca3af' %>;border:<%= @step.to_i >= n.to_i ? 'none' : '2px solid #e5e7eb' %>;"><%= n %></div>
+        <span style="font-size:14px;white-space:nowrap;font-weight:<%= @step.to_i == n.to_i ? '600' : '400' %>;color:<%= @step.to_i == n.to_i ? '#111827' : '#9ca3af' %>;"><%= label %></span>
       </div>
-      <% if i < 2 %><div class="flex-1 h-px bg-gray-200 mx-3 min-w-[24px]"></div><% end %>
+      <% if i < 2 %><div style="flex:1;height:1px;background:#e5e7eb;margin:0 12px;min-width:24px;"></div><% end %>
     <% end %>
   </div>
-
-  <h1 class="text-2xl font-bold text-gray-900 mb-1">New Agreement</h1>
-  <p class="text-sm text-gray-500 mb-6">Fill in the details below. Signatories are assigned automatically based on agreement type and entity.</p>
-
-  <%= form_with scope: :agreement, url: agreements_path, method: :post,
-                data: { controller: 'agreement-wizard' } do |f| %>
-
+  <h1 style="font-size:1.5rem;font-weight:700;color:#111827;margin-bottom:4px;">New Agreement</h1>
+  <p style="font-size:14px;color:#6b7280;margin-bottom:1.5rem;">Signatories are assigned automatically based on entity and agreement type.</p>
+  <%= form_with scope: :agreement, url: agreements_path, method: :post, html: { id: 'agwiz' } do |f| %>
     <% if @agreement.errors.any? %>
-      <div class="mb-4 p-4 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
-        <p class="font-semibold mb-1">Please fix the following:</p>
-        <ul class="list-disc list-inside space-y-0.5">
-          <% @agreement.errors.full_messages.each do |msg| %>
-            <li><%= msg %></li>
-          <% end %>
-        </ul>
+      <div style="margin-bottom:1rem;padding:1rem;border-radius:8px;background:#fef2f2;border:1px solid #fecaca;font-size:14px;color:#b91c1c;">
+        <% @agreement.errors.full_messages.each do |msg| %><p>&bull; <%= msg %></p><% end %>
       </div>
     <% end %>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-      <%# ── LEFT: agreement + entity + mandate ────────────────────────────── %>
-      <div class="md:col-span-2 space-y-5">
-
-        <%# Agreement type %>
+    <div style="display:grid;gap:1.25rem;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1.5">
-            Agreement Type <span class="text-red-500">*</span>
-          </label>
-          <%= f.select :agreement_type,
-            CafWorkflow::AGREEMENT_TYPES.map { |k,v| [v, k] },
-            { include_blank: '— Select type —' },
-            class: 'w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
-            required: true %>
+          <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Agreement Type <span style="color:#ef4444">*</span></label>
+          <%= f.select :agreement_type, CafWorkflow::AGREEMENT_TYPES.map{|k,v|[v,k]}, {include_blank:'-- Select type --'}, id:'ag_type', style:'width:100%;border-radius:8px;border:1px solid #d1d5db;padding:9px 12px;font-size:14px;background:white;', required:true %>
         </div>
-
-        <%# IG Entity %>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1.5">
-            IG Entity <span class="text-red-500">*</span>
-          </label>
-          <%= f.select :entity,
-            IgSignatories::ENTITIES.map { |k,v| [v[:name], k.to_s] },
-            { include_blank: '— Select entity —' },
-            class: 'w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
-            required: true %>
-          <p class="mt-1 text-xs text-gray-400">Which IG business unit / company is entering this agreement?</p>
+          <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">IG Entity <span style="color:#ef4444">*</span></label>
+          <%= f.select :entity, IgSignatories::ENTITIES.map{|k,v|[v[:name],k.to_s]}, {include_blank:'-- Select entity --'}, id:'ag_entity', style:'width:100%;border-radius:8px;border:1px solid #d1d5db;padding:9px 12px;font-size:14px;background:white;', required:true %>
         </div>
-
-        <%# Counterparty contact row %>
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1.5">Contact Name</label>
-            <%= f.text_field :counterparty_name,
-              data: { 'agreement-wizard-target': 'contactName' },
-              class: 'w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500',
-              placeholder: 'John Smith' %>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1.5">Contact Email</label>
-            <%= f.email_field :counterparty_email,
-              data: { 'agreement-wizard-target': 'contactEmail' },
-              class: 'w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500',
-              placeholder: 'john@company.co.za' %>
-          </div>
-        </div>
-
-        <%# Mandate / description %>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1.5">Mandate &amp; Purpose</label>
-          <%= f.text_area :mandate_description, rows: 3,
-            class: 'w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none',
-            placeholder: 'Briefly describe what this agreement covers and why it is needed.' %>
-        </div>
-
-        <%# Requestor hidden %>
-        <%= f.hidden_field :requestor_name,  value: @agreement.requestor_name %>
-        <%= f.hidden_field :requestor_email, value: @agreement.requestor_email %>
-
       </div>
-
-      <%# ── RIGHT: counterparty company ───────────────────────────────────── %>
-      <div class="md:col-span-1">
-        <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 h-full">
-          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Counterparty Company</p>
-
-          <%# Search existing companies %>
-          <div class="relative mb-3">
-            <input type="text"
-                   id="company_search"
-                   placeholder="Search companies..."
-                   autocomplete="off"
-                   data-agreement-wizard-target="companySearch"
-                   data-action="input->agreement-wizard#searchCompanies"
-                   class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm pl-8 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <svg class="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-            </svg>
+      <div id="entity_panel" style="display:none;border-radius:10px;border:1px solid #dbeafe;background:#eff6ff;padding:1rem;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <div>
+            <p style="font-size:11px;font-weight:700;color:#3b82f6;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Entity Details</p>
+            <p id="ep_name" style="font-size:14px;font-weight:700;color:#1e3a5f;margin-bottom:3px;"></p>
+            <p id="ep_reg"  style="font-size:12px;color:#4b5563;margin-bottom:4px;"></p>
+            <p id="ep_addr" style="font-size:12px;color:#4b5563;white-space:pre-line;line-height:1.5;"></p>
           </div>
-
-          <%# Search results dropdown %>
-          <div id="company_results"
-               data-agreement-wizard-target="companyResults"
-               class="hidden space-y-1.5 mb-3 max-h-48 overflow-y-auto">
+          <div>
+            <p style="font-size:11px;font-weight:700;color:#3b82f6;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Signing Chain <span id="ep_ct" style="font-weight:400;text-transform:none;color:#6b7280;"></span></p>
+            <div id="ep_chain" style="font-size:12px;color:#374151;line-height:2;"></div>
           </div>
-
-          <%# Selected company display %>
-          <div id="selected_company"
-               data-agreement-wizard-target="selectedCompany"
-               class="hidden rounded-lg border border-blue-200 bg-blue-50 p-3 mb-3">
-            <div class="flex items-start justify-between gap-2">
-              <div>
-                <p class="text-sm font-semibold text-gray-900" data-agreement-wizard-target="selectedName"></p>
-                <p class="text-xs text-gray-500 mt-0.5" data-agreement-wizard-target="selectedDomain"></p>
-              </div>
-              <button type="button" data-action="click->agreement-wizard#clearCompany"
-                      class="text-gray-400 hover:text-gray-600 shrink-0">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path d="M18 6 6 18M6 6l12 12"/>
-                </svg>
-              </button>
+        </div>
+        <div style="margin-top:8px;border-top:1px solid #bfdbfe;padding-top:6px;display:flex;gap:8px;align-items:center;">
+          <button type="button" id="ep_copy" style="font-size:11px;color:#3b82f6;background:none;border:1px solid #93c5fd;border-radius:6px;padding:3px 10px;cursor:pointer;">Copy entity details</button>
+          <span id="ep_ok" style="font-size:11px;color:#16a34a;display:none;">Copied &#10003;</span>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div>
+          <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Counterparty Contact Name</label>
+          <%= f.text_field :counterparty_name, id:'ag_ct_name', style:'width:100%;border-radius:8px;border:1px solid #d1d5db;padding:9px 12px;font-size:14px;box-sizing:border-box;', placeholder:'John Smith' %>
+        </div>
+        <div>
+          <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Counterparty Contact Email</label>
+          <%= f.email_field :counterparty_email, id:'ag_ct_email', style:'width:100%;border-radius:8px;border:1px solid #d1d5db;padding:9px 12px;font-size:14px;box-sizing:border-box;', placeholder:'john@company.co.za' %>
+        </div>
+      </div>
+      <div>
+        <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Mandate &amp; Purpose</label>
+        <%= f.text_area :mandate_description, rows:3, style:'width:100%;border-radius:8px;border:1px solid #d1d5db;padding:9px 12px;font-size:14px;resize:none;box-sizing:border-box;', placeholder:'Briefly describe what this agreement covers and why it is needed.' %>
+      </div>
+      <%= f.hidden_field :requestor_name,  value: @agreement.requestor_name %>
+      <%= f.hidden_field :requestor_email, value: @agreement.requestor_email %>
+      <div style="border-radius:10px;border:1px solid #e5e7eb;background:#f9fafb;padding:1rem;">
+        <p style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px;">Counterparty Company</p>
+        <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:flex-start;">
+          <div>
+            <div style="position:relative;margin-bottom:8px;">
+              <input type="text" id="co_search" placeholder="Search existing companies..." autocomplete="off" style="width:100%;border-radius:8px;border:1px solid #d1d5db;background:white;padding:9px 12px 9px 32px;font-size:13px;box-sizing:border-box;">
+              <svg style="position:absolute;left:10px;top:10px;width:14px;height:14px;color:#9ca3af;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
             </div>
+            <div id="co_results" style="display:none;margin-bottom:8px;max-height:160px;overflow-y:auto;border-radius:8px;border:1px solid #e5e7eb;background:white;"></div>
+            <div id="co_sel" style="display:none;border-radius:8px;border:1px solid #bfdbfe;background:#eff6ff;padding:10px 12px;margin-bottom:4px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                <div><p id="co_sel_name" style="font-size:13px;font-weight:600;color:#111827;"></p><p id="co_sel_domain" style="font-size:11px;color:#6b7280;margin-top:1px;"></p></div>
+                <button type="button" id="co_clear" style="color:#9ca3af;background:none;border:none;cursor:pointer;font-size:20px;line-height:1;padding:0;">&times;</button>
+              </div>
+            </div>
+            <%= f.hidden_field :company_id, id:'co_id' %>
           </div>
-
-          <%= f.hidden_field :company_id, data: { 'agreement-wizard-target': 'companyIdInput' } %>
-
-          <%# Divider %>
-          <div class="flex items-center gap-2 my-3">
-            <div class="flex-1 h-px bg-gray-200"></div>
-            <span class="text-xs text-gray-400">or</span>
-            <div class="flex-1 h-px bg-gray-200"></div>
+          <button type="button" id="co_new_btn" style="border-radius:8px;border:1px dashed #d1d5db;padding:9px 14px;font-size:12px;font-weight:500;color:#6b7280;background:none;cursor:pointer;white-space:nowrap;">+ Add new company</button>
+        </div>
+        <div id="co_new_form" style="display:none;margin-top:10px;border-top:1px solid #e5e7eb;padding-top:10px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <input type="text" name="new_company_name" placeholder="Company name *" style="border-radius:8px;border:1px solid #d1d5db;padding:8px 12px;font-size:13px;">
+            <input type="text" name="new_company_registration_number" placeholder="Reg number" style="border-radius:8px;border:1px solid #d1d5db;padding:8px 12px;font-size:13px;">
+            <input type="text" name="new_company_contact_name" id="nc_name" placeholder="Contact name" style="border-radius:8px;border:1px solid #d1d5db;padding:8px 12px;font-size:13px;">
+            <input type="email" name="new_company_contact_email" id="nc_email" placeholder="Contact email" style="border-radius:8px;border:1px solid #d1d5db;padding:8px 12px;font-size:13px;">
+            <input type="text" name="new_company_domain" placeholder="Domain (e.g. acme.co.za)" style="border-radius:8px;border:1px solid #d1d5db;padding:8px 12px;font-size:13px;">
           </div>
-
-          <%# Toggle new company form %>
-          <button type="button"
-                  data-action="click->agreement-wizard#toggleNewCompany"
-                  data-agreement-wizard-target="addNewToggle"
-                  class="w-full flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-gray-300 px-3 py-2 text-xs font-medium text-gray-500 hover:border-gray-400 hover:text-gray-700 transition-colors">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path d="M12 5v14M5 12h14"/>
-            </svg>
-            Add new company
-          </button>
-
-          <%# New company inline form (hidden initially) %>
-          <div id="new_company_form"
-               data-agreement-wizard-target="newCompanyForm"
-               class="hidden mt-3 space-y-2">
-            <input type="text" name="new_company_name"
-                   placeholder="Company name *"
-                   class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <input type="text" name="new_company_contact_name"
-                   placeholder="Contact name"
-                   data-agreement-wizard-target="newContactName"
-                   class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <input type="email" name="new_company_contact_email"
-                   placeholder="Contact email"
-                   data-agreement-wizard-target="newContactEmail"
-                   class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <input type="text" name="new_company_domain"
-                   placeholder="Domain (e.g. acme.co.za)"
-                   class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <p class="text-xs text-gray-400">This company will be saved to your directory.</p>
-          </div>
-
+          <p style="margin-top:6px;font-size:11px;color:#9ca3af;">Saved to your counterparty directory.</p>
         </div>
       </div>
-
-    </div><%# end grid %>
-
-    <div class="mt-8 flex items-center justify-between pt-6 border-t border-gray-200">
-      <%= link_to agreements_path, class: 'text-sm text-gray-500 hover:text-gray-700' do %>
-        ← Cancel
-      <% end %>
-      <%= f.submit 'Continue to Upload →',
-            class: 'px-6 py-2.5 rounded-lg text-sm font-semibold text-white cursor-pointer transition-colors',
-            style: 'background-color:#1a2332;' %>
     </div>
-
+    <div style="margin-top:2rem;display:flex;align-items:center;justify-content:space-between;padding-top:1.5rem;border-top:1px solid #e5e7eb;">
+      <%= link_to agreements_path, style:'font-size:14px;color:#6b7280;text-decoration:none;' do %>&larr; Cancel<% end %>
+      <%= f.submit 'Continue to Upload &rarr;', style:'padding:10px 24px;border-radius:8px;font-size:14px;font-weight:600;color:white;background-color:#162B3C;cursor:pointer;border:none;' %>
+    </div>
   <% end %>
-
 </div>
-
-<%# Stimulus controller for company search + form toggling %>
 <script>
-(function() {
-  const SEARCH_URL = '<%= search_companies_agreements_path(format: :json) %>';
-
-  function initWizard() {
-    const el = document.querySelector('[data-controller="agreement-wizard"]');
-    if (!el) return;
-
-    const $  = (sel, ctx = el) => ctx.querySelector(sel);
-    const $$ = (sel, ctx = el) => [...ctx.querySelectorAll(sel)];
-
-    const searchInput    = $('[data-agreement-wizard-target="companySearch"]');
-    const resultsBox     = $('[data-agreement-wizard-target="companyResults"]');
-    const selectedBox    = $('[data-agreement-wizard-target="selectedCompany"]');
-    const selectedName   = $('[data-agreement-wizard-target="selectedName"]');
-    const selectedDomain = $('[data-agreement-wizard-target="selectedDomain"]');
-    const companyIdInput = $('[data-agreement-wizard-target="companyIdInput"]');
-    const contactName    = $('[data-agreement-wizard-target="contactName"]');
-    const contactEmail   = $('[data-agreement-wizard-target="contactEmail"]');
-    const addNewToggle   = $('[data-agreement-wizard-target="addNewToggle"]');
-    const newCompanyForm = $('[data-agreement-wizard-target="newCompanyForm"]');
-    const newContactName = $('[data-agreement-wizard-target="newContactName"]');
-    const newContactEmail= $('[data-agreement-wizard-target="newContactEmail"]');
-
-    let debounceTimer;
-
-    searchInput && searchInput.addEventListener('input', function() {
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        const q = this.value.trim();
-        if (q.length < 1) { resultsBox.classList.add('hidden'); return; }
-        fetch(SEARCH_URL + '?q=' + encodeURIComponent(q), { headers: { Accept: 'application/json' } })
-          .then(r => r.json())
-          .then(companies => {
-            resultsBox.innerHTML = '';
-            if (!companies.length) {
-              resultsBox.innerHTML = '<p class="text-xs text-gray-400 px-1 py-2">No matches — add below</p>';
-            } else {
-              companies.forEach(c => {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'w-full text-left rounded-lg bg-white border border-gray-200 px-3 py-2 text-sm hover:border-blue-400 hover:bg-blue-50 transition-colors';
-                btn.innerHTML = `<span class="font-medium text-gray-900">${c.name}</span>${c.domain ? '<span class="text-xs text-gray-400 ml-1.5">'+c.domain+'</span>' : ''}${c.contact_name ? '<br><span class="text-xs text-gray-500">'+c.contact_name+'</span>' : ''}`;
-                btn.addEventListener('click', () => selectCompany(c));
-                resultsBox.appendChild(btn);
-              });
-            }
-            resultsBox.classList.remove('hidden');
-          });
-      }, 250);
-    });
-
-    function selectCompany(c) {
-      companyIdInput.value    = c.id;
-      selectedName.textContent  = c.name;
-      selectedDomain.textContent = c.domain || '';
-      selectedBox.classList.remove('hidden');
-      resultsBox.classList.add('hidden');
-      searchInput.value = '';
-      if (contactName  && !contactName.value  && c.contact_name)  contactName.value  = c.contact_name;
-      if (contactEmail && !contactEmail.value && c.contact_email) contactEmail.value = c.contact_email;
-    }
-
-    // Clear selected company
-    el.addEventListener('click', function(e) {
-      if (e.target.closest('[data-action="click->agreement-wizard#clearCompany"]')) {
-        companyIdInput.value = '';
-        selectedBox.classList.add('hidden');
-      }
-      if (e.target.closest('[data-action="click->agreement-wizard#toggleNewCompany"]')) {
-        newCompanyForm.classList.toggle('hidden');
-        addNewToggle.textContent = newCompanyForm.classList.contains('hidden') ? '+ Add new company' : '− Hide form';
-        // Mirror contact details into main form
-        newContactName  && (newContactName.addEventListener('input',  () => { if (contactName)  contactName.value  = newContactName.value; }));
-        newContactEmail && (newContactEmail.addEventListener('input', () => { if (contactEmail) contactEmail.value = newContactEmail.value; }));
-      }
-    });
-
-    // Close dropdown on outside click
-    document.addEventListener('click', function(e) {
-      if (!el.contains(e.target)) resultsBox.classList.add('hidden');
-    });
+(function(){
+  var E=<%=raw IgSignatories.entities_for_js.to_json%>;
+  var C={};
+  <%IgSignatories::ENTITIES.each do|key,_|%><%['nda','short_form','long_form'].each do|ct|%>C['<%=key%>_<%=ct%>']=<%=raw IgSignatories.chain_for(ct,key)[:stage1].to_json%>;<%end%><%end%>
+  var M={nda:'nda',msa:'long_form',sla:'long_form',vendor_agreement:'long_form',other:'long_form',addendum:'short_form',employment_contract:'short_form',policy_acknowledgement:'short_form'};
+  var SEARCH='<%=search_companies_agreements_path(format: :json)%>';
+  var typeSel=document.getElementById('ag_type'),entSel=document.getElementById('ag_entity'),panel=document.getElementById('entity_panel');
+  function updatePanel(){
+    var ek=entSel&&entSel.value;if(!ek){panel.style.display='none';return;}
+    var e=E.find(function(x){return x.key===ek;});if(!e){panel.style.display='none';return;}
+    document.getElementById('ep_name').textContent=e.name;
+    document.getElementById('ep_reg').textContent=e.registration?'Reg: '+e.registration:'';
+    document.getElementById('ep_addr').textContent=e.address||'';
+    var at=typeSel?typeSel.value:'',ct=M[at]||'long_form';
+    document.getElementById('ep_ct').textContent={nda:'(NDA)',short_form:'(Short-form)',long_form:'(Long-form)'}[ct]||'';
+    var chain=C[ek+'_'+ct]||[];
+    document.getElementById('ep_chain').innerHTML=chain.length?chain.map(function(p,i){return'<span style="display:flex;align-items:center;gap:6px;margin-bottom:1px;"><span style="width:18px;height:18px;border-radius:50%;background:#162B3C;color:white;font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">'+(i+1)+'</span><strong>'+p.name+'</strong>&nbsp;<span style="color:#6b7280;">'+p.title+'</span></span>';}).join(''):'<span style="color:#9ca3af">Select agreement type to see chain</span>';
+    panel.style.display='block';
+    document.getElementById('ep_copy').onclick=function(){if(navigator.clipboard){navigator.clipboard.writeText(e.name+'\nReg: '+e.registration+'\n'+e.address).then(function(){var ok=document.getElementById('ep_ok');ok.style.display='inline';setTimeout(function(){ok.style.display='none';},2000);});}};
   }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initWizard);
-  } else {
-    initWizard();
-  }
+  entSel&&entSel.addEventListener('change',updatePanel);
+  typeSel&&typeSel.addEventListener('change',updatePanel);
+  var si=document.getElementById('co_search'),rb=document.getElementById('co_results'),sb=document.getElementById('co_sel'),ci=document.getElementById('co_id'),cn=document.getElementById('ag_ct_name'),ce=document.getElementById('ag_ct_email');
+  var dbt;
+  si&&si.addEventListener('input',function(){clearTimeout(dbt);dbt=setTimeout(function(){var q=si.value.trim();if(q.length<1){rb.style.display='none';return;}fetch(SEARCH+'?q='+encodeURIComponent(q),{headers:{Accept:'application/json'}}).then(function(r){return r.json();}).then(function(cs){rb.innerHTML='';if(!cs.length){rb.innerHTML='<p style="font-size:12px;color:#9ca3af;padding:8px 12px;">No matches - add below</p>';}else{cs.forEach(function(c){var b=document.createElement('button');b.type='button';b.style.cssText='width:100%;text-align:left;padding:8px 12px;font-size:13px;background:none;border:none;border-bottom:1px solid #f3f4f6;cursor:pointer;';b.onmouseover=function(){this.style.background='#eff6ff';};b.onmouseout=function(){this.style.background='none';};b.innerHTML='<strong style="color:#111827;">'+c.name+'</strong>'+(c.domain?' <span style="font-size:11px;color:#9ca3af;">'+c.domain+'</span>':'')+(c.contact_name?'<br><span style="font-size:11px;color:#6b7280;">'+c.contact_name+'</span>':'');b.addEventListener('click',function(){selC(c);});rb.appendChild(b);});}rb.style.display='block';});},250);});
+  function selC(c){ci.value=c.id;document.getElementById('co_sel_name').textContent=c.name;document.getElementById('co_sel_domain').textContent=c.domain||'';sb.style.display='block';rb.style.display='none';si.value='';if(cn&&!cn.value&&c.contact_name)cn.value=c.contact_name;if(ce&&!ce.value&&c.contact_email)ce.value=c.contact_email;}
+  var clr=document.getElementById('co_clear');clr&&clr.addEventListener('click',function(){ci.value='';sb.style.display='none';});
+  var nb=document.getElementById('co_new_btn'),nf=document.getElementById('co_new_form');
+  nb&&nb.addEventListener('click',function(){var h=nf.style.display!=='block';nf.style.display=h?'block':'none';nb.textContent=h?'- Hide form':'+ Add new company';});
+  var ncn=document.getElementById('nc_name'),nce=document.getElementById('nc_email');
+  ncn&&ncn.addEventListener('input',function(){if(cn&&!cn.value)cn.value=ncn.value;});
+  nce&&nce.addEventListener('input',function(){if(ce&&!ce.value)ce.value=nce.value;});
+  document.addEventListener('click',function(e){if(rb&&si&&!si.contains(e.target)&&!rb.contains(e.target))rb.style.display='none';});
 })();
 </script>
