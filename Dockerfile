@@ -1,5 +1,5 @@
 # cache-bust: 2026-05-07
-FROM ruby:3.4.7-alpine AS download
+FROM ruby:3.4.7-alpine AS ig_download
 
 WORKDIR /fonts
 
@@ -14,7 +14,7 @@ RUN apk --no-cache add wget && \
     mkdir -p /pdfium-linux && \
     tar -xzf pdfium-linux.tgz -C /pdfium-linux
 
-FROM ruby:3.4.7-alpine AS webpack
+FROM ruby:3.4.7-alpine AS ig_webpack
 
 ENV RAILS_ENV=production
 ENV NODE_ENV=production
@@ -41,7 +41,7 @@ COPY ./app/views ./app/views
 
 RUN echo "gem 'shakapacker'" > Gemfile && ./bin/shakapacker
 
-FROM ruby:3.4.7-alpine AS app
+FROM ruby:3.4.7-alpine AS ig_app
 
 ENV RAILS_ENV=production
 ENV BUNDLE_WITHOUT="development:test"
@@ -80,11 +80,11 @@ COPY --chown=docuseal:docuseal ./tmp ./tmp
 COPY --chown=docuseal:docuseal LICENSE LICENSE_ADDITIONAL_TERMS README.md Rakefile config.ru .version ./
 COPY --chown=docuseal:docuseal .version ./public/version
 
-COPY --chown=docuseal:docuseal --from=download /fonts/GoNotoKurrent-Regular.ttf /fonts/GoNotoKurrent-Bold.ttf /fonts/DancingScript-Regular.otf /fonts/OFL.txt /fonts/LICENSE /fonts/
-COPY --from=download /pdfium-linux/lib/libpdfium.so /usr/lib/libpdfium.so
-COPY --from=download /pdfium-linux/licenses/pdfium.txt /usr/lib/libpdfium-LICENSE.txt
-COPY --chown=docuseal:docuseal --from=download /model.onnx /app/tmp/model.onnx
-COPY --chown=docuseal:docuseal --from=webpack /app/public/packs ./public/packs
+COPY --chown=docuseal:docuseal --from=ig_download /fonts/GoNotoKurrent-Regular.ttf /fonts/GoNotoKurrent-Bold.ttf /fonts/DancingScript-Regular.otf /fonts/OFL.txt /fonts/LICENSE /fonts/
+COPY --from=ig_download /pdfium-linux/lib/libpdfium.so /usr/lib/libpdfium.so
+COPY --from=ig_download /pdfium-linux/licenses/pdfium.txt /usr/lib/libpdfium-LICENSE.txt
+COPY --chown=docuseal:docuseal --from=ig_download /model.onnx /app/tmp/model.onnx
+COPY --chown=docuseal:docuseal --from=ig_webpack /app/public/packs ./public/packs
 
 RUN mkdir -p /app/public/fonts && ln -s /fonts/DancingScript-Regular.otf /app/public/fonts/ && \
     mkdir -p /usr/share/fonts/noto && ln -s /fonts/GoNotoKurrent-Regular.ttf /usr/share/fonts/noto/ && ln -s /fonts/GoNotoKurrent-Bold.ttf /usr/share/fonts/noto/ && fc-cache -f && \
