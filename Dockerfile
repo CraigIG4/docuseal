@@ -1,3 +1,4 @@
+# cache-bust: 2026-05-07
 FROM ruby:3.4.7-alpine AS download
 
 WORKDIR /fonts
