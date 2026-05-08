@@ -53,6 +53,8 @@ Puma::Plugin.create do
       @sidekiq = Sidekiq::Launcher.new(configs, embedded: true)
 
       @sidekiq.run
+    rescue => e
+      warn "[sidekiq_embed] Sidekiq not started: #{e.message}"
     end
   end
 
@@ -67,7 +69,9 @@ Puma::Plugin.create do
       RedisClient.new(url: ENV.fetch('REDIS_URL', nil)).call('GET', '1')
 
       break
-    rescue RedisClient::CannotConnectError
+    rescue NameError
+      raise('Redis client not available; Sidekiq embed disabled')
+    rescue StandardError
       raise('Unable to connect to redis') if attempt > 10
     end
   end
