@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:Arial,sans-serif;font-size:9pt;color:#1a1a1a;}
+.page{width:210mm;min-height:297mm;padding:14mm;}
+.hdr{display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #162B3C;padding-bottom:8px;margin-bottom:10px;}
+.ht{font-size:14pt;font-weight:bold;color:#162B3C;}.hs{font-size:8pt;color:#555;margin-top:2px;}
+.lb{background:#162B3C;color:white;font-size:12pt;font-weight:bold;padding:5px 12px;border-radius:4px;}
+.badge{display:inline-block;background:#45AC34;color:white;font-size:7.5pt;font-weight:bold;padding:2px 10px;border-radius:20px;margin-bottom:8px;}
+.ig{display:grid;grid-template-columns:1fr 1fr;border:1px solid #c0c0c0;border-radius:4px;overflow:hidden;margin-bottom:8px;}
+.ic{padding:5px 8px;border-right:1px solid #e0e0e0;border-bottom:1px solid #e0e0e0;}
+.ic:nth-child(even){border-right:none;}.ic:nth-last-child(-n+2){border-bottom:none;}
+.il{font-size:7pt;font-weight:bold;color:#162B3C;text-transform:uppercase;}.iv{font-size:9pt;margin-top:2px;}
+.sh{background:#162B3C;color:white;font-size:8.5pt;font-weight:bold;padding:4px 8px;margin-top:7px;}
+.mb{border:1px solid #c0c0c0;padding:8px;min-height:70px;font-size:9pt;line-height:1.5;white-space:pre-line;}
+table{width:100%;border-collapse:collapse;font-size:8.5pt;}
+th{background:#e8edf2;color:#162B3C;font-size:7.5pt;font-weight:bold;padding:4px 7px;text-align:left;border:1px solid #c0c0c0;text-transform:uppercase;}
+td{padding:5px 7px;border:1px solid #d0d0d0;vertical-align:top;}
+.sn{font-weight:bold;font-size:8.5pt;}.st{font-size:7.5pt;color:#555;}
+.sno{font-size:7pt;color:#444;font-style:italic;line-height:1.35;}
+.sb{height:30px;border-bottom:1px solid #888;}
+.ftr{border-top:1px solid #c0c0c0;margin-top:8px;padding-top:4px;font-size:7pt;color:#888;display:flex;justify-content:space-between;}
+</style></head><body><div class="page">
+<div class="hdr"><div><div class="ht">CONTRACT APPROVAL FORM</div><div class="hs">Ignition Group &mdash; Internal Use Only | Confidential</div></div><div class="lb">IGSIGN</div></div>
+<div class="badge">SHORT FORM CAF</div>
+<div class="ig">
+  <div class="ic"><div class="il">Contract Type</div><div class="iv"><%= @caf[:agreement_type_label] %></div></div>
+  <div class="ic"><div class="il">Date of Preparation</div><div class="iv"><%= @caf[:date_prepared] %></div></div>
+  <div class="ic"><div class="il">Ignition Company</div><div class="iv"><%= @caf[:entity_name] %></div></div>
+  <div class="ic"><div class="il">Registration Number</div><div class="iv"><%= @caf[:entity_registration] %></div></div>
+  <div class="ic"><div class="il">Contracting Party (Counterparty)</div><div class="iv"><%= @caf[:counterparty_name].presence || '&mdash;' %></div></div>
+  <div class="ic"><div class="il">Counterparty Signatory Email</div><div class="iv"><%= @caf[:counterparty_email].presence || '&mdash;' %></div></div>
+  <div class="ic"><div class="il">Requestor</div><div class="iv"><%= @caf[:requestor_name] %></div></div>
+  <div class="ic"><div class="il">Requestor Email</div><div class="iv"><%= @caf[:requestor_email] %></div></div>
+</div>
+<div class="sh">HIGH LEVEL SUMMARY &amp; MANDATE</div>
+<div class="mb"><%= @caf[:mandate_description].presence || 'To be completed by the requestor.' %></div>
+<div class="sh">APPROVALS</div>
+<table><tr><th style="width:24%">Division / Role</th><th style="width:20%">Signatory</th><th style="width:32%">Note</th><th>Signature</th><th>Date</th></tr>
+<tr><td><span class="sn">Requestor</span><br><span class="st"><%= @caf[:requestor_email] %></span></td><td><span class="sn"><%= @caf[:requestor_name] %></span></td><td class="sno">I have read and understood all commercial terms and I approve that Ignition Company should be bound by this agreement.</td><td><div class="sb"></div></td><td><div class="sb"></div></td></tr>
+<% @caf[:bu_heads].each do |person| %>
+<tr><td><span class="sn">Ignition Group</span><br><span class="st">Business Unit Head</span></td><td><span class="sn"><%= person[:name] %></span><br><span class="st"><%= person[:title] %></span></td><td class="sno">I approve the agreement is necessary for Ignition Group commercial purposes.</td><td><div class="sb"></div></td><td><div class="sb"></div></td></tr>
+<% end %>
+<tr><td><span class="sn">Ignition Group</span><br><span class="st">Group Procurement</span></td><td><span class="sn">Ms Callie Baney</span></td><td></td><td><div class="sb"></div></td><td><div class="sb"></div></td></tr>
+<tr><td><span class="sn">Ignition Group</span><br><span class="st">Business Unit Finance</span></td><td><span class="sn"><%= @caf[:bu_finance_name] %></span><br><span class="st"><%= @caf[:bu_finance_title] %></span></td><td></td><td><div class="sb"></div></td><td><div class="sb"></div></td></tr>
+<tr><td><span class="sn">Ignition Group</span><br><span class="st">Group Chief Legal Officer</span></td><td><span class="sn">Craig G. Lawrence</span><br><span class="st">Chief Legal Officer</span></td><td></td><td><div class="sb"></div></td><td><div class="sb"></div></td></tr>
+<tr><td><span class="sn">Ignition Group</span><br><span class="st">Group CFO</span></td><td><span class="sn">Laren Farquharson</span><br><span class="st">Chief Financial Officer</span></td><td></td><td><div class="sb"></div></td><td><div class="sb"></div></td></tr>
+<tr><td><span class="sn">Ignition Group</span><br><span class="st">Group CEO</span></td><td><span class="sn">Sean Bergsma</span><br><span class="st">Chief Executive Officer</span></td><td class="sno">Approval noted as per signature to the Agreement.</td><td><div class="sb"></div></td><td><div class="sb"></div></td></tr>
+<tr><td><span class="sn">Ignition Group</span><br><span class="st">Group COO (in the alternative)</span></td><td><span class="sn">Donovan Bergsma</span><br><span class="st">Chief Operating Officer</span></td><td class="sno">Approval noted as per signature to the Agreement.</td><td><div class="sb"></div></td><td><div class="sb"></div></td></tr>
+</table>
+<div class="ftr"><span>IGSIGN &mdash; Ignition Group | Internal &amp; Confidential | Not for external distribution</span><span>Generated: <%= @caf[:date_prepared] %> | Agreement #<%= @caf[:agreement_id] %></span></div>
+</div></body></html>

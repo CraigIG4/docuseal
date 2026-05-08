@@ -1,4 +1,4 @@
-<a href="<%= root_path %>" class="mx-auto text-2xl md:text-3xl font-bold items-center flex space-x-3">
-  <%= render 'shared/logo', class: 'w-9 h-9 md:w-12 md:h-12' %>
-  <span><%= Docuseal.product_name %></span>
+<a href="<%= root_path %>" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
+  <%= render('shared/logo', dark: false, height: '28') rescue nil %>
+  <span style="font-size:13px;font-weight:700;color:#162B3C;letter-spacing:0.02em;">IGSIGN</span>
 </a>

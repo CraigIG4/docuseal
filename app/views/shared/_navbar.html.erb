@@ -1,64 +1,92 @@
 <%= render 'shared/navbar_warning' %>
-<%# IGSIGN: Full-width Arctic Black premium navbar %>
-<nav class="w-full mb-6 border-b" style="background-color:#162B3C; border-color:#0d1f2d;">
-  <div class="max-w-7xl mx-auto px-4 md:px-6 py-0 flex items-center justify-between" style="height:60px;">
+<nav class="w-full mb-6 border-b" style="background-color:#162B3C; border-color:#0d1f2d; position:relative; z-index:50;">
+  <div class="max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between" style="height:60px;">
 
-    <%# Left: logo + wordmark %>
-    <a href="<%= root_path %>" class="flex items-center space-x-0 group" style="text-decoration:none;">
-      <%= render 'shared/logo', dark: true, height: '38' %>
+    <%# Logo %>
+    <a href="<%= root_path %>" style="text-decoration:none; display:flex; align-items:center; gap:10px; flex-shrink:0;">
+      <%= render 'shared/logo', dark: true, height: '36' %>
     </a>
 
-    <%# Right: nav actions %>
     <% if signed_in? %>
-      <div class="flex items-center space-x-4">
-        <%# Nav links — hidden on mobile %>
-        <div class="hidden md:flex items-center space-x-5">
-          <%= render 'shared/navbar_buttons' %>
-          <%= link_to 'CAFs', cafs_path,
-                class: 'text-sm font-medium transition-colors duration-150',
-                style: 'color: rgba(255,255,255,0.75)' %>
-          <%= link_to t('settings'), settings_profile_index_path,
-                class: 'text-sm font-medium transition-colors duration-150',
-                style: 'color: rgba(255,255,255,0.75)',
-                id: 'account_settings_button' %>
-        </div>
+      <%# Primary nav — desktop %>
+      <div style="display:flex; align-items:center; gap:4px; flex:1; margin:0 24px;">
+        <% current_path = request.path %>
+        <% [
+          ['Agreements', '/agreements'],
+          ['Templates',  '/templates'],
+          ['Contacts',   '/companies']
+        ].each do |label, path| %>
+          <% active = current_path.start_with?(path) %>
+          <a href="<%= path %>"
+             style="display:inline-flex; align-items:center; padding:6px 12px; border-radius:6px; font-size:14px; font-weight:500; text-decoration:none; transition:background 0.15s;
+                    color: <%= active ? '#ffffff' : 'rgba(255,255,255,0.85)' %>;
+                    background: <%= active ? 'rgba(255,255,255,0.12)' : 'transparent' %>;"
+             onmouseover="if(!this.dataset.active){this.style.background='rgba(255,255,255,0.08)'; this.style.color='#fff';}"
+             onmouseout="if(!this.dataset.active){this.style.background='transparent'; this.style.color='rgba(255,255,255,0.85)';}"
+             data-active="<%= active %>">
+            <%= label %>
+          </a>
+        <% end %>
+      </div>
 
-        <%# User avatar dropdown %>
-        <div class="dropdown dropdown-end">
+      <%# Right section %>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <%# + New Agreement %>
+        <a href="<%= new_agreement_path rescue '#' %>"
+           style="display:none; align-items:center; gap:6px; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:600; color:#ffffff; border:1px solid rgba(255,255,255,0.25); text-decoration:none; transition:background 0.15s;"
+           class="md:!flex"
+           onmouseover="this.style.background='rgba(255,255,255,0.1)';"
+           onmouseout="this.style.background='transparent';">
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+          </svg>
+          New Agreement
+        </a>
+
+        <%# Settings %>
+        <a href="<%= settings_profile_index_path rescue '#' %>"
+           title="Settings"
+           id="account_settings_button"
+           style="display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:6px; color:rgba(255,255,255,0.7); text-decoration:none; transition:background 0.15s;"
+           onmouseover="this.style.background='rgba(255,255,255,0.1)'; this.style.color='#fff';"
+           onmouseout="this.style.background='transparent'; this.style.color='rgba(255,255,255,0.7)';">
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:17px;height:17px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </a>
+
+        <%# User avatar dropdown — DaisyUI kept for dropdown function %>
+        <div class="dropdown dropdown-end" style="z-index:100;">
           <label tabindex="0"
-                 class="cursor-pointer flex items-center justify-center rounded-full font-bold text-sm select-none"
-                 style="background-color:#45AC34; color:#162B3C; width:34px; height:34px;">
+                 style="cursor:pointer; display:flex; align-items:center; justify-content:center; border-radius:50%; font-weight:700; font-size:13px; width:34px; height:34px; background-color:#45AC34; color:#162B3C; flex-shrink:0;">
             <%= current_user.initials %>
           </label>
           <ul tabindex="0"
-              class="z-50 dropdown-content p-2 mt-2 shadow-xl menu bg-base-100 rounded-xl min-w-[180px]"
-              style="border:1px solid #e8ebed;">
+              class="dropdown-content z-50 p-2 mt-2 shadow-xl menu bg-base-100 rounded-xl"
+              style="min-width:190px; border:1px solid #e8ebed;">
             <li>
-              <%= link_to settings_profile_index_path, class: 'flex items-center gap-2 text-sm' do %>
-                <%= svg_icon('adjustments', class: 'w-4 h-4 flex-shrink-0') %>
-                <%= t('profile') %>
+              <%= link_to (settings_profile_index_path rescue '#'), class: 'flex items-center gap-2 text-sm' do %>
+                <%= svg_icon('adjustments', class: 'w-4 h-4 flex-shrink-0') %><%= t('profile') %>
               <% end %>
             </li>
             <% if !Docuseal.demo? && can?(:manage, EncryptedConfig) %>
               <li>
                 <%= link_to Docuseal.multitenant? ? console_redirect_index_path : Docuseal::CONSOLE_URL,
                       data: { prefetch: false }, class: 'flex items-center gap-2 text-sm' do %>
-                  <%= svg_icon('terminal', class: 'w-4 h-4 flex-shrink-0') %>
-                  <%= t('console') %>
+                  <%= svg_icon('terminal', class: 'w-4 h-4 flex-shrink-0') %><%= t('console') %>
                 <% end %>
               </li>
             <% end %>
             <% if can?(:read, EncryptedConfig.new(key: EncryptedConfig::ESIGN_CERTS_KEY, account: current_account)) %>
               <li>
-                <%= link_to settings_esign_path, class: 'flex items-center gap-2 text-sm' do %>
-                  <%= svg_icon('zoom_check', class: 'w-4 h-4 flex-shrink-0') %>
-                  <%= t('verify_pdf') %>
+                <%= link_to (settings_esign_path rescue '#'), class: 'flex items-center gap-2 text-sm' do %>
+                  <%= svg_icon('zoom_check', class: 'w-4 h-4 flex-shrink-0') %><%= t('verify_pdf') %>
                 <% end %>
               </li>
             <% end %>
             <% if (can?(:manage, EncryptedConfig) && current_user == true_user) || (current_user != true_user && current_account.testing?) %>
-              <%= form_for '', url: testing_account_path, method: current_account.testing? ? :delete : :get,
-                    html: { class: 'w-full py-1' } do |f| %>
+              <%= form_for '', url: testing_account_path, method: current_account.testing? ? :delete : :get, html: { class: 'w-full py-1' } do |f| %>
                 <label class="flex items-center px-3 py-2 border-y border-base-300 text-sm gap-2" for="testing_toggle">
                   <submit-form data-on="change" class="flex">
                     <%= f.check_box :testing_toggle, class: 'toggle toggle-sm', checked: current_account.testing? %>
@@ -68,29 +96,27 @@
               <% end %>
             <% end %>
             <li class="border-t border-base-300 mt-1 pt-1">
-              <%= button_to destroy_user_session_path, method: :delete,
-                    data: { turbo: false }, class: 'flex items-center gap-2 text-sm w-full text-left' do %>
-                <%= svg_icon('logout', class: 'w-4 h-4 flex-shrink-0') %>
-                <%= t('sign_out') %>
+              <%= button_to destroy_user_session_path, method: :delete, data: { turbo: false },
+                    class: 'flex items-center gap-2 text-sm w-full text-left' do %>
+                <%= svg_icon('logout', class: 'w-4 h-4 flex-shrink-0') %><%= t('sign_out') %>
               <% end %>
             </li>
           </ul>
         </div>
 
-        <%# Mobile hamburger placeholder — space for future mobile nav %>
-        <button class="md:hidden flex flex-col gap-1 p-1" style="color:#ffffff;" aria-label="Menu">
-          <span class="block w-5 h-0.5 bg-white"></span>
-          <span class="block w-5 h-0.5 bg-white"></span>
-          <span class="block w-5 h-0.5 bg-white"></span>
+        <%# Mobile hamburger %>
+        <button class="md:hidden" style="color:#fff; background:none; border:none; padding:4px; cursor:pointer;">
+          <svg style="width:20px;height:20px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
         </button>
       </div>
 
     <% else %>
-      <%# Unauthenticated: sign-in only — no sign-up noise %>
-      <% if request.path != new_user_session_path && request.path != setup_index_path %>
+      <% if request.path != new_user_session_path && request.path != setup_index_path rescue false %>
         <%= link_to new_user_session_path({ lang: params[:lang] }.compact_blank),
-              class: 'flex items-center gap-1.5 text-sm font-semibold transition-colors duration-150',
-              style: 'color:#ffffff;' do %>
+              class: 'flex items-center gap-1.5 text-sm font-semibold',
+              style: 'color:#ffffff; text-decoration:none;' do %>
           <%= svg_icon('login', class: 'w-5 h-5') %>
           <span><%= t('sign_in') %></span>
         <% end %>
