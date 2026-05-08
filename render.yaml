@@ -4,7 +4,7 @@ services:
     env: docker
     dockerfilePath: ./Dockerfile
     plan: free
-    healthCheckPath: /
+    healthCheckPath: /up
     preDeployCommand: bundle exec rails db:migrate
     envVars:
       - key: RAILS_ENV
