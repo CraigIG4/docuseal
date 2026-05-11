@@ -9,9 +9,8 @@ class AgreementsController < ApplicationController
   def index
     scope = current_account.caf_workflows.includes(:company, :created_by_user).recent
 
-    if (sf = params[:status].to_s.strip).present? && CafWorkflow::STATUSES.include?(sf)
-      scope = scope.where(status: sf)
-    end
+    sf = params[:status].to_s.strip
+    scope = scope.where(status: sf) if sf.present? && CafWorkflow::STATUSES.include?(sf)
 
     @agreements = scope
     @stats = {
@@ -86,7 +85,7 @@ class AgreementsController < ApplicationController
       template.destroy
       Rails.logger.error "[IGSIGN] Upload failed agreement=#{@agreement.id}: #{e.message}"
       redirect_to upload_agreement_path(@agreement),
-                  alert: "Upload failed: #{e.message.to_s.truncate(200)}"
+                  alert: "Upload failed. Please try again or contact support."
     end
   end
   # rubocop:enable Metrics/MethodLength

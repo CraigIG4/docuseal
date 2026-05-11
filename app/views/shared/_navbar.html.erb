@@ -70,7 +70,7 @@
                 <%= svg_icon('adjustments', class: 'w-4 h-4 flex-shrink-0') %><%= t('profile') %>
               <% end %>
             </li>
-            <% if !Docuseal.demo? && can?(:manage, EncryptedConfig) %>
+            <% if can?(:manage, EncryptedConfig) && !Docuseal.demo? %>
               <li>
                 <%= link_to Docuseal.multitenant? ? console_redirect_index_path : Docuseal::CONSOLE_URL,
                       data: { prefetch: false }, class: 'flex items-center gap-2 text-sm' do %>
