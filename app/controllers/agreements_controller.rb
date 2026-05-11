@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # IGSIGN — Agreement Wizard: Details → Upload → Review → Send
 class AgreementsController < ApplicationController
   before_action :authenticate_user!
@@ -14,18 +15,24 @@ class AgreementsController < ApplicationController
 
     @agreements = scope
     @stats = {
-      total:    current_account.caf_workflows.count,
-      draft:    current_account.caf_workflows.draft.count,
-      active:   current_account.caf_workflows.active.count,
+      total: current_account.caf_workflows.count,
+      draft: current_account.caf_workflows.draft.count,
+      active: current_account.caf_workflows.active.count,
       complete: current_account.caf_workflows.complete.count
     }
+  end
+
+  # ── Show ───────────────────────────────────────────────────────────────────
+
+  def show
+    @signatories = @agreement.signatories || []
   end
 
   # ── Step 1 — Details ───────────────────────────────────────────────────────
 
   def new
     @agreement = CafWorkflow.new(
-      requestor_name:  current_user.name,
+      requestor_name: current_user.name,
       requestor_email: current_user.email
     )
     @companies = current_account.companies.alphabetical
@@ -33,10 +40,10 @@ class AgreementsController < ApplicationController
   end
 
   def create
-    @agreement             = CafWorkflow.new(agreement_params)
-    @agreement.account     = current_account
+    @agreement = CafWorkflow.new(agreement_params)
+    @agreement.account = current_account
     @agreement.created_by_user = current_user
-    @agreement.status      = 'draft'
+    @agreement.status = 'draft'
 
     build_inline_company(@agreement, params)
     autofill_from_company!(@agreement)
@@ -48,7 +55,7 @@ class AgreementsController < ApplicationController
     else
       @companies = current_account.companies.alphabetical
       @step = 1
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -68,8 +75,8 @@ class AgreementsController < ApplicationController
 
     template = Template.new(
       account: current_account,
-      author:  current_user,
-      name:    "#{@agreement.agreement_type_label} — #{@agreement.contracting_party.presence || 'Agreement'}"
+      author: current_user,
+      name: "#{@agreement.agreement_type_label} — #{@agreement.contracting_party.presence || 'Agreement'}"
     )
 
     unless template.save
@@ -85,7 +92,7 @@ class AgreementsController < ApplicationController
       template.destroy
       Rails.logger.error "[IGSIGN] Upload failed agreement=#{@agreement.id}: #{e.message}"
       redirect_to upload_agreement_path(@agreement),
-                  alert: "Upload failed. Please try again or contact support."
+                  alert: 'Upload failed. Please try again or contact support.'
     end
   end
   # rubocop:enable Metrics/MethodLength
@@ -93,8 +100,8 @@ class AgreementsController < ApplicationController
   # ── Step 3 — Review ────────────────────────────────────────────────────────
 
   def review
-    @step         = 3
-    @signatories  = @agreement.signatories || []
+    @step = 3
+    @signatories = @agreement.signatories || []
     @template_doc = @agreement.template
   end
 
@@ -119,27 +126,24 @@ class AgreementsController < ApplicationController
     end
   end
 
-  # ── Show ───────────────────────────────────────────────────────────────────
-
-  def show
-    @signatories = @agreement.signatories || []
-  end
-
   # ── AJAX company search ────────────────────────────────────────────────────
 
   def search_companies
-    q         = params[:q].to_s.strip
-    companies = q.length >= 1 ? current_account.companies.search(q).limit(8)
-                               : current_account.companies.alphabetical.limit(8)
+    q = params[:q].to_s.strip
+    companies = if q.present?
+                  current_account.companies.search(q).limit(8)
+                else
+                  current_account.companies.alphabetical.limit(8)
+                end
 
     render json: companies.map { |c|
       {
-        id:            c.id,
-        name:          c.name,
-        contact_name:  c.primary_contact_name,
+        id: c.id,
+        name: c.name,
+        contact_name: c.primary_contact_name,
         contact_email: c.primary_contact_email,
-        domain:        c.domain,
-        count:         c.agreements_count
+        domain: c.domain,
+        count: c.agreements_count
       }
     }
   end
@@ -169,9 +173,9 @@ class AgreementsController < ApplicationController
 
     co = current_account.companies.find_or_initialize_by(name: form_params[:new_company_name].strip)
     co.assign_attributes(
-      primary_contact_name:  form_params[:new_company_contact_name].to_s.strip,
+      primary_contact_name: form_params[:new_company_contact_name].to_s.strip,
       primary_contact_email: form_params[:new_company_contact_email].to_s.strip,
-      domain:                form_params[:new_company_domain].to_s.strip
+      domain: form_params[:new_company_domain].to_s.strip
     )
     co.save
     agreement.company = co
@@ -183,8 +187,8 @@ class AgreementsController < ApplicationController
     co = agreement.company
     return unless co
 
-    agreement.contracting_party  = co.name if agreement.contracting_party.blank?
-    agreement.counterparty_name  = co.primary_contact_name  if agreement.counterparty_name.blank?
+    agreement.contracting_party = co.name if agreement.contracting_party.blank?
+    agreement.counterparty_name = co.primary_contact_name if agreement.counterparty_name.blank?
     agreement.counterparty_email = co.primary_contact_email if agreement.counterparty_email.blank?
   end
 end

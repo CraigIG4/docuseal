@@ -53,7 +53,7 @@ Puma::Plugin.create do
       @sidekiq = Sidekiq::Launcher.new(configs, embedded: true)
 
       @sidekiq.run
-    rescue => e
+    rescue StandardError => e
       warn "[sidekiq_embed] Sidekiq not started: #{e.message}"
     end
   end

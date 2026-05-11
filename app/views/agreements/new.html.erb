@@ -1,7 +1,7 @@
 <% content_for :title, 'New Agreement' %>
 <div class="max-w-5xl mx-auto px-4 py-8">
   <div style="display:flex;align-items:center;margin-bottom:2rem;">
-    <% [['1','Agreement Details'],['2','Upload Document'],['3','Review & Send']].each_with_index do |(n,label),i| %>
+    <% [['1', 'Agreement Details'], ['2', 'Upload Document'], ['3', 'Review & Send']].each_with_index do |(n, label), i| %>
       <div style="display:flex;align-items:center;gap:8px;">
         <div style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;background-color:<%= @step.to_i >= n.to_i ? '#162B3C' : 'white' %>;color:<%= @step.to_i >= n.to_i ? 'white' : '#9ca3af' %>;border:<%= @step.to_i >= n.to_i ? 'none' : '2px solid #e5e7eb' %>;"><%= n %></div>
         <span style="font-size:14px;white-space:nowrap;font-weight:<%= @step.to_i == n.to_i ? '600' : '400' %>;color:<%= @step.to_i == n.to_i ? '#111827' : '#9ca3af' %>;"><%= label %></span>
@@ -21,11 +21,11 @@
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
         <div>
           <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Agreement Type <span style="color:#ef4444">*</span></label>
-          <%= f.select :agreement_type, CafWorkflow::AGREEMENT_TYPES.map{|k,v|[v,k]}, {include_blank:'-- Select type --'}, id:'ag_type', style:'width:100%;border-radius:8px;border:1px solid #d1d5db;padding:9px 12px;font-size:14px;background:white;', required:true %>
+          <%= f.select :agreement_type, CafWorkflow::AGREEMENT_TYPES.map { |k, v| [v, k] }, { include_blank: '-- Select type --' }, id: 'ag_type', style: 'width:100%;border-radius:8px;border:1px solid #d1d5db;padding:9px 12px;font-size:14px;background:white;', required: true %>
         </div>
         <div>
           <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">IG Entity <span style="color:#ef4444">*</span></label>
-          <%= f.select :entity, IgSignatories::ENTITIES.map{|k,v|[v[:name],k.to_s]}, {include_blank:'-- Select entity --'}, id:'ag_entity', style:'width:100%;border-radius:8px;border:1px solid #d1d5db;padding:9px 12px;font-size:14px;background:white;', required:true %>
+          <%= f.select :entity, IgSignatories::ENTITIES.map { |k, v| [v[:name], k.to_s] }, { include_blank: '-- Select entity --' }, id: 'ag_entity', style: 'width:100%;border-radius:8px;border:1px solid #d1d5db;padding:9px 12px;font-size:14px;background:white;', required: true %>
         </div>
       </div>
       <div id="entity_panel" style="display:none;border-radius:10px;border:1px solid #dbeafe;background:#eff6ff;padding:1rem;">
@@ -49,11 +49,11 @@
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
         <div>
           <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Counterparty Contact Name</label>
-          <%= f.text_field :counterparty_name, id:'ag_ct_name', style:'width:100%;border-radius:8px;border:1px solid #d1d5db;padding:9px 12px;font-size:14px;box-sizing:border-box;', placeholder:'John Smith' %>
+          <%= f.text_field :counterparty_name, id: 'ag_ct_name', autocomplete: 'off', style: 'width:100%;border-radius:8px;border:1px solid #d1d5db;padding:9px 12px;font-size:14px;box-sizing:border-box;', placeholder: 'John Smith' %>
         </div>
         <div>
           <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Counterparty Contact Email</label>
-          <%= f.email_field :counterparty_email, id:'ag_ct_email', style:'width:100%;border-radius:8px;border:1px solid #d1d5db;padding:9px 12px;font-size:14px;box-sizing:border-box;', placeholder:'john@company.co.za' %>
+          <%= f.email_field :counterparty_email, id: 'ag_ct_email', autocomplete: 'email', style: 'width:100%;border-radius:8px;border:1px solid #d1d5db;padding:9px 12px;font-size:14px;box-sizing:border-box;', placeholder: 'john@company.co.za' %>
         </div>
       </div>
       <div>
@@ -83,29 +83,29 @@
         </div>
         <div id="co_new_form" style="display:none;margin-top:10px;border-top:1px solid #e5e7eb;padding-top:10px;">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-            <input type="text" name="new_company_name" placeholder="Company name *" style="border-radius:8px;border:1px solid #d1d5db;padding:8px 12px;font-size:13px;">
-            <input type="text" name="new_company_registration_number" placeholder="Reg number" style="border-radius:8px;border:1px solid #d1d5db;padding:8px 12px;font-size:13px;">
-            <input type="text" name="new_company_contact_name" id="nc_name" placeholder="Contact name" style="border-radius:8px;border:1px solid #d1d5db;padding:8px 12px;font-size:13px;">
-            <input type="email" name="new_company_contact_email" id="nc_email" placeholder="Contact email" style="border-radius:8px;border:1px solid #d1d5db;padding:8px 12px;font-size:13px;">
-            <input type="text" name="new_company_domain" placeholder="Domain (e.g. acme.co.za)" style="border-radius:8px;border:1px solid #d1d5db;padding:8px 12px;font-size:13px;">
+            <input type="text" name="new_company_name" autocomplete="organization" placeholder="Company name *" style="border-radius:8px;border:1px solid #d1d5db;padding:8px 12px;font-size:13px;">
+            <input type="text" name="new_company_registration_number" autocomplete="off" placeholder="Reg number" style="border-radius:8px;border:1px solid #d1d5db;padding:8px 12px;font-size:13px;">
+            <input type="text" name="new_company_contact_name" id="nc_name" autocomplete="name" placeholder="Contact name" style="border-radius:8px;border:1px solid #d1d5db;padding:8px 12px;font-size:13px;">
+            <input type="email" name="new_company_contact_email" id="nc_email" autocomplete="email" placeholder="Contact email" style="border-radius:8px;border:1px solid #d1d5db;padding:8px 12px;font-size:13px;">
+            <input type="text" name="new_company_domain" autocomplete="off" placeholder="Domain (e.g. acme.co.za)" style="border-radius:8px;border:1px solid #d1d5db;padding:8px 12px;font-size:13px;">
           </div>
           <p style="margin-top:6px;font-size:11px;color:#9ca3af;">Saved to your counterparty directory.</p>
         </div>
       </div>
     </div>
     <div style="margin-top:2rem;display:flex;align-items:center;justify-content:space-between;padding-top:1.5rem;border-top:1px solid #e5e7eb;">
-      <%= link_to agreements_path, style:'font-size:14px;color:#6b7280;text-decoration:none;' do %>&larr; Cancel<% end %>
-      <%= f.submit 'Continue to Upload &rarr;', style:'padding:10px 24px;border-radius:8px;font-size:14px;font-weight:600;color:white;background-color:#162B3C;cursor:pointer;border:none;' %>
+      <%= link_to agreements_path, style: 'font-size:14px;color:#6b7280;text-decoration:none;' do %>&larr; Cancel<% end %>
+      <%= f.submit 'Continue to Upload &rarr;', style: 'padding:10px 24px;border-radius:8px;font-size:14px;font-weight:600;color:white;background-color:#162B3C;cursor:pointer;border:none;' %>
     </div>
   <% end %>
 </div>
 <script>
 (function(){
-  var E=<%=raw IgSignatories.entities_for_js.to_json%>;
+  var E=<%= raw IgSignatories.entities_for_js.to_json %>;
   var C={};
-  <%IgSignatories::ENTITIES.each do|key,_|%><%['nda','short_form','long_form'].each do|ct|%>C['<%=key%>_<%=ct%>']=<%=raw IgSignatories.chain_for(ct,key)[:stage1].to_json%>;<%end%><%end%>
+  <% IgSignatories::ENTITIES.each do |key, _| %><% %w[nda short_form long_form].each do |ct| %>C['<%= key %>_<%= ct %>']=<%= raw IgSignatories.chain_for(ct, key)[:stage1].to_json %>;<% end %><% end %>
   var M={nda:'nda',msa:'long_form',sla:'long_form',vendor_agreement:'long_form',other:'long_form',addendum:'short_form',employment_contract:'short_form',policy_acknowledgement:'short_form'};
-  var SEARCH='<%=search_companies_agreements_path(format: :json)%>';
+  var SEARCH='<%= search_companies_agreements_path(format: :json) %>';
   var typeSel=document.getElementById('ag_type'),entSel=document.getElementById('ag_entity'),panel=document.getElementById('entity_panel');
   function updatePanel(){
     var ek=entSel&&entSel.value;if(!ek){panel.style.display='none';return;}

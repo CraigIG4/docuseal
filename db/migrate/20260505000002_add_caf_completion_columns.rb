@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 class AddCafCompletionColumns < ActiveRecord::Migration[7.1]
   def change
     # Track when individual CAF stages complete

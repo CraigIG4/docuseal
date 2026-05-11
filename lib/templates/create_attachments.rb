@@ -123,9 +123,7 @@ module Templates
       end
 
       # Word / Excel / ODT / RTF → convert to PDF via LibreOffice then ingest as PDF
-      if DOCUMENT_CONTENT_TYPES.include?(file.content_type)
-        return [handle_document_file(template, file, params, extract_fields:), []]
-      end
+      return [handle_document_file(template, file, params, extract_fields:), []] if DOCUMENT_CONTENT_TYPES.include?(file.content_type)
 
       raise InvalidFileType, "#{file.content_type}/#{dynamic}"
     end
@@ -142,7 +140,7 @@ module Templates
 
       pdf_file = ActionDispatch::Http::UploadedFile.new(
         filename: pdf_name,
-        type:     PDF_CONTENT_TYPE,
+        type: PDF_CONTENT_TYPE,
         tempfile: pdf_tempfile
       )
 
@@ -165,9 +163,7 @@ module Templates
         file.tempfile.path
       )
 
-      unless status.success?
-        raise InvalidFileType, "Document conversion failed: #{stderr.strip}"
-      end
+      raise InvalidFileType, "Document conversion failed: #{stderr.strip}" unless status.success?
 
       pdf_files = Dir.glob(File.join(output_dir, '*.pdf'))
       raise InvalidFileType, 'Document conversion produced no PDF output' if pdf_files.empty?

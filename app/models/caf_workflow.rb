@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # IGSIGN — Contract Approval Form Workflow
 # Lifecycle: draft → pending_ig → ig_complete → sent_counterparty → complete
 # == Schema Information
@@ -51,62 +52,62 @@
 #
 class CafWorkflow < ApplicationRecord
   AGREEMENT_TYPES = {
-    'nda'        => 'NDA — Non-Disclosure Agreement',
-    'msa'        => 'MSA — Master Services Agreement',
-    'addendum'   => 'Addendum',
-    'sla'        => 'SLA — Service Level Agreement',
-    'vendor'     => 'Vendor Agreement',
+    'nda' => 'NDA — Non-Disclosure Agreement',
+    'msa' => 'MSA — Master Services Agreement',
+    'addendum' => 'Addendum',
+    'sla' => 'SLA — Service Level Agreement',
+    'vendor' => 'Vendor Agreement',
     'employment' => 'Employment Contract',
-    'policy'     => 'Policy Acknowledgement',
-    'other'      => 'Other Agreement'
+    'policy' => 'Policy Acknowledgement',
+    'other' => 'Other Agreement'
   }.freeze
 
   AGREEMENT_TO_CAF_TYPE = {
-    'nda'        => 'nda',
-    'msa'        => 'long_form',
-    'addendum'   => 'short_form',
-    'sla'        => 'long_form',
-    'vendor'     => 'long_form',
+    'nda' => 'nda',
+    'msa' => 'long_form',
+    'addendum' => 'short_form',
+    'sla' => 'long_form',
+    'vendor' => 'long_form',
     'employment' => 'short_form',
-    'policy'     => 'nda',
-    'other'      => 'long_form'
+    'policy' => 'nda',
+    'other' => 'long_form'
   }.freeze
 
   CAF_LABELS = {
-    'nda'        => 'NDA Approval Form',
-    'msa'        => 'Contract Approval Form',
-    'addendum'   => 'Addendum Approval Form',
-    'sla'        => 'Contract Approval Form',
-    'vendor'     => 'Contract Approval Form',
+    'nda' => 'NDA Approval Form',
+    'msa' => 'Contract Approval Form',
+    'addendum' => 'Addendum Approval Form',
+    'sla' => 'Contract Approval Form',
+    'vendor' => 'Contract Approval Form',
     'employment' => 'Employment Approval Form',
-    'policy'     => 'Policy Acknowledgement Form',
-    'other'      => 'Contract Approval Form'
+    'policy' => 'Policy Acknowledgement Form',
+    'other' => 'Contract Approval Form'
   }.freeze
 
   STATUSES = %w[draft pending_ig ig_complete sent_counterparty complete cancelled].freeze
 
   belongs_to :account
   belongs_to :created_by_user, class_name: 'User'
-  belongs_to :company,         optional: true
-  belongs_to :template,        class_name: 'Template', optional: true
-  belongs_to :caf_submission,      class_name: 'Submission', optional: true
+  belongs_to :company, optional: true
+  belongs_to :template, class_name: 'Template', optional: true
+  belongs_to :caf_submission, class_name: 'Submission', optional: true
   belongs_to :contract_submission, class_name: 'Submission', optional: true
 
   has_one_attached :contract_document
 
   before_validation :derive_caf_type_from_agreement_type
 
-  validates :entity,  presence: true,
-                      inclusion: { in: IgSignatories::ENTITIES.keys.map(&:to_s) }
-  validates :status,  presence: true, inclusion: { in: STATUSES }
+  validates :entity, presence: true,
+                     inclusion: { in: IgSignatories::ENTITIES.keys.map(&:to_s) }
+  validates :status, presence: true, inclusion: { in: STATUSES }
   validates :counterparty_email,
             format: { with: URI::MailTo::EMAIL_REGEXP }, allow_blank: true
 
-  scope :active,    -> { where.not(status: %w[complete cancelled]) }
-  scope :pending,   -> { where(status: %w[pending_ig sent_counterparty]) }
-  scope :complete,  -> { where(status: 'complete') }
-  scope :draft,     -> { where(status: 'draft') }
-  scope :recent,    -> { order(created_at: :desc) }
+  scope :active, -> { where.not(status: %w[complete cancelled]) }
+  scope :pending, -> { where(status: %w[pending_ig sent_counterparty]) }
+  scope :complete, -> { where(status: 'complete') }
+  scope :draft, -> { where(status: 'draft') }
+  scope :recent, -> { order(created_at: :desc) }
 
   # ── Labels ────────────────────────────────────────────────────────────────
 
@@ -129,12 +130,12 @@ class CafWorkflow < ApplicationRecord
 
   def status_label
     {
-      'draft'              => 'Draft',
-      'pending_ig'         => 'Pending IG Approval',
-      'ig_complete'        => 'IG Approved',
-      'sent_counterparty'  => 'With Counterparty',
-      'complete'           => 'Complete',
-      'cancelled'          => 'Cancelled'
+      'draft' => 'Draft',
+      'pending_ig' => 'Pending IG Approval',
+      'ig_complete' => 'IG Approved',
+      'sent_counterparty' => 'With Counterparty',
+      'complete' => 'Complete',
+      'cancelled' => 'Cancelled'
     }.fetch(status, status.humanize)
   end
 
@@ -154,12 +155,12 @@ class CafWorkflow < ApplicationRecord
     chain = IgSignatories.chain_for(derived_caf_type, entity)
     self.signatories = chain.map.with_index do |entry, idx|
       {
-        'position'    => idx,
-        'role'        => entry[:role],
-        'name'        => entry[:name],
-        'email'       => entry[:email],
+        'position' => idx,
+        'role' => entry[:role],
+        'name' => entry[:name],
+        'email' => entry[:email],
         'placeholder' => entry[:placeholder] || false,
-        'key'         => entry[:key].to_s
+        'key' => entry[:key].to_s
       }
     end
   end

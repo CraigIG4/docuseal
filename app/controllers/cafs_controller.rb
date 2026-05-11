@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # IGSIGN — CAF Workflow Controller
 class CafsController < ApplicationController
   before_action :authenticate_user!
@@ -8,8 +9,8 @@ class CafsController < ApplicationController
     @cafs = current_account.caf_workflows.recent
                            .includes(:created_by_user, :caf_submission, :contract_submission)
     @stats = {
-      total:    @cafs.count,
-      pending:  @cafs.pending.count,
+      total: @cafs.count,
+      pending: @cafs.pending.count,
       complete: @cafs.complete.count
     }
   end
@@ -18,16 +19,16 @@ class CafsController < ApplicationController
 
   def new
     @caf = CafWorkflow.new
-    @caf.requestor_name  = current_user.name
+    @caf.requestor_name = current_user.name
     @caf.requestor_email = current_user.email
-    @caf.account         = current_account
+    @caf.account = current_account
   end
 
   def create
     @caf = CafWorkflow.new(caf_params)
-    @caf.account            = current_account
-    @caf.created_by_user    = current_user
-    @caf.status             = 'draft'
+    @caf.account = current_account
+    @caf.created_by_user = current_user
+    @caf.status = 'draft'
 
     # Auto-assign signatories from entity + type logic
     @caf.auto_assign_signatories!
@@ -40,7 +41,7 @@ class CafsController < ApplicationController
     if @caf.save
       redirect_to caf_path(@caf), notice: 'CAF created. Review signatories and submit for approval.'
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -50,7 +51,7 @@ class CafsController < ApplicationController
     if @caf.update(caf_params)
       redirect_to caf_path(@caf), notice: 'CAF updated.'
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 
@@ -78,9 +79,9 @@ class CafsController < ApplicationController
 
   # GET /cafs/signatories_for — AJAX: return signatories for entity + type
   def signatories_for
-    entity   = params[:entity]
+    entity = params[:entity]
     caf_type = params[:caf_type]
-    chain    = IgSignatories.chain_for(caf_type, entity)
+    chain = IgSignatories.chain_for(caf_type, entity)
     render json: chain
   end
 
@@ -108,8 +109,8 @@ class CafsController < ApplicationController
     @caf.signatories = sigs.map do |s|
       if s['placeholder'] == true || s['key'] == 'bu_head'
         s.merge(
-          'name'        => caf_params[:bu_head_name],
-          'email'       => caf_params[:bu_head_email],
+          'name' => caf_params[:bu_head_name],
+          'email' => caf_params[:bu_head_email],
           'placeholder' => false
         )
       else
@@ -126,7 +127,7 @@ class CafsController < ApplicationController
 
     parsed = JSON.parse(raw)
     unless parsed.is_a?(Array)
-      Rails.logger.warn "[IGSIGN] custom_signatories is not an Array, ignoring"
+      Rails.logger.warn '[IGSIGN] custom_signatories is not an Array, ignoring'
       return nil
     end
 

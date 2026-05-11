@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # IGSIGN — Creates a DocuSeal Submission for the internal CAF signing phase.
 # After all IG signatories complete, the CafCompletionHandler fires to strip
 # the CAF and create the counterparty submission.
@@ -9,67 +10,76 @@ class CafSubmissionCreator
   end
 
   def call
-    # Validate signatories have been resolved (no placeholders without email)
-    unresolved = @caf.signatories.select { |s| s['placeholder'] && s['email'].blank? }
+    unresolved = unresolved_signatories
     if unresolved.any?
-      return { success: false, error: "Please assign all signatories (unresolved: #{unresolved.map { |s| s['role'] }.join(', ')})" }
+      unresolved_roles = unresolved.pluck('role').join(', ')
+      return { success: false, error: "Please assign all signatories (unresolved: #{unresolved_roles})" }
     end
 
-    # We need a template to attach the submission to.
-    # Use the account's CAF template, or create a minimal one on the fly.
+    submission = build_submission
+    attach_signatories(submission)
+    attach_stages(submission)
+    attach_contract_document(submission)
+
+    submission.caf_stages.ordered_by_position.first&.activate!
+
+    { success: true, submission: submission }
+  rescue StandardError => e
+    Rails.logger.error("CafSubmissionCreator failed: #{e.message}\n#{e.backtrace.first(5).join("\n")}")
+    { success: false, error: e.message }
+  end
+
+  private
+
+  def unresolved_signatories
+    @caf.signatories.select { |s| s['placeholder'] && s['email'].blank? }
+  end
+
+  def build_submission
     template = find_or_create_caf_template
 
-    # Create the submission via DocuSeal internals
-    submission = Submission.create!(
-      account:           @caf.account,
-      template:          template,
-      created_by_user:   @user,
-      source:            'api',
-      submitters_order:  'random',  # we control order via CafStage
-      name:              submission_name,
+    Submission.create!(
+      account: @caf.account,
+      template: template,
+      created_by_user: @user,
+      source: 'api',
+      submitters_order: 'random',
+      name: submission_name
     )
+  end
 
-    # Create submitters in the CAF signing order
+  def attach_signatories(submission)
     @caf.signatories.each_with_index do |sig, idx|
       submission.submitters.create!(
-        account:    @caf.account,
-        name:       sig['name'],
-        email:      sig['email'],
-        uuid:       SecureRandom.uuid,
-        slug:       SecureRandom.base58(14),
-        metadata:   { 'caf_role' => sig['role'], 'caf_position' => idx },
+        account: @caf.account,
+        name: sig['name'],
+        email: sig['email'],
+        uuid: SecureRandom.uuid,
+        slug: SecureRandom.base58(14),
+        metadata: { 'caf_role' => sig['role'], 'caf_position' => idx }
       )
     end
+  end
 
-    # Build CAF stages using the approval matrix or defaults
+  def attach_stages(submission)
     matrix = CafApprovalMatrix.for(@caf.account, caf_type_for_matrix)
     if matrix
       matrix.build_stages_for(submission).each(&:save!)
     else
       build_default_stages(submission)
     end
-
-    # Register the contract document as an external (non-stripped) document
-    if @caf.contract_document.attached?
-      CafStageDocument.create!(
-        submission:    submission,
-        document_uuid: @caf.contract_document.blob.key,
-        document_name: @caf.contract_document.blob.filename.to_s,
-        internal_only: false,
-      )
-    end
-
-    # Activate the first stage to send the first email
-    first_stage = submission.caf_stages.ordered_by_position.first
-    first_stage&.activate!
-
-    { success: true, submission: submission }
-  rescue => e
-    Rails.logger.error("CafSubmissionCreator failed: #{e.message}\n#{e.backtrace.first(5).join("\n")}")
-    { success: false, error: e.message }
   end
 
-  private
+  def attach_contract_document(submission)
+    return unless @caf.contract_document.attached?
+
+    CafStageDocument.create!(
+      submission: submission,
+      document_uuid: @caf.contract_document.blob.key,
+      document_name: @caf.contract_document.blob.filename.to_s,
+      internal_only: false
+    )
+  end
 
   def submission_name
     "CAF — #{@caf.caf_type_label} — #{@caf.contracting_party} — #{Date.current.strftime('%d %b %Y')}"
@@ -77,57 +87,61 @@ class CafSubmissionCreator
 
   def caf_type_for_matrix
     case @caf.caf_type
-    when 'nda'        then 'nda'
-    when 'short_form', 'long_form' then 'contract'
-    else 'other'
+    when 'nda'                      then 'nda'
+    when 'short_form', 'long_form'  then 'contract'
+    else                                 'other'
     end
   end
 
   def find_or_create_caf_template
-    # Look for an existing pinned CAF template
     existing = @caf.account.templates.find_by(name: 'IGSIGN CAF Template')
     return existing if existing
 
-    # Create a minimal blank template — the actual CAF document
-    # is generated as a PDF attachment when the submission is submitted.
     Template.create!(
-      account:    @caf.account,
-      name:       'IGSIGN CAF Template',
+      account: @caf.account,
+      name: 'IGSIGN CAF Template',
       created_by: @user,
-      fields:     [],
-      schema:     [],
-      submitters: [{ 'name' => 'Approver', 'uuid' => SecureRandom.uuid }],
+      fields: [],
+      schema: [],
+      submitters: [{ 'name' => 'Approver', 'uuid' => SecureRandom.uuid }]
     )
   end
 
   def build_default_stages(submission)
-    # Stage 1: Internal IG approval (ordered, strip CAF on complete)
-    stage1 = submission.caf_stages.create!(
-      name:                       'Internal CAF Approval',
-      position:                   0,
-      routing:                    'ordered',
-      strip_internal_on_complete: true,
-      status:                     'active',
-      activated_at:               Time.current,
-    )
+    stage1 = create_internal_stage(submission)
+    assign_submitters_to_stage(submission, stage1)
+    create_counterparty_stage(submission)
+  end
 
-    # Assign all signatories to stage 1
+  def create_internal_stage(submission)
+    submission.caf_stages.create!(
+      name: 'Internal CAF Approval',
+      position: 0,
+      routing: 'ordered',
+      strip_internal_on_complete: true,
+      status: 'active',
+      activated_at: Time.current
+    )
+  end
+
+  def assign_submitters_to_stage(submission, stage)
     submission.submitters.order(created_at: :asc).each_with_index do |submitter, idx|
       CafStageSubmitter.create!(
-        caf_stage:   stage1,
-        submitter:   submitter,
-        role:        submitter.metadata&.dig('caf_role') || 'Approver',
-        position:    idx,
+        caf_stage: stage,
+        submitter: submitter,
+        role: submitter.metadata&.dig('caf_role') || 'Approver',
+        position: idx
       )
     end
+  end
 
-    # Stage 2: Counterparty signing (created later, when stage 1 completes)
+  def create_counterparty_stage(submission)
     submission.caf_stages.create!(
-      name:                       'Counterparty Signing',
-      position:                   1,
-      routing:                    'parallel',
+      name: 'Counterparty Signing',
+      position: 1,
+      routing: 'parallel',
       strip_internal_on_complete: false,
-      status:                     'pending',
+      status: 'pending'
     )
   end
 end

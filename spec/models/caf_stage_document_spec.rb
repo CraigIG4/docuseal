@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: caf_stage_documents
@@ -25,17 +27,17 @@
 require 'rails_helper'
 
 RSpec.describe CafStageDocument, type: :model do
-  let(:user)       { create(:user) }
-  let(:account)    { user.account }
-  let(:template)   { create(:template, author: user, account: account) }
-  let(:submission) { create(:submission, template: template, created_by_user: user) }
-
   subject(:doc) do
-    CafStageDocument.new(
+    described_class.new(
       submission: submission, document_uuid: SecureRandom.uuid,
       document_name: 'Contract Approval Form.pdf', internal_only: true
     )
   end
+
+  let(:user)       { create(:user) }
+  let(:account)    { user.account }
+  let(:template)   { create(:template, author: user, account: account) }
+  let(:submission) { create(:submission, template: template, created_by_user: user) }
 
   # == Validations =============================================================
 
@@ -54,9 +56,9 @@ RSpec.describe CafStageDocument, type: :model do
 
     it 'enforces unique document_uuid per submission' do
       doc.save!
-      duplicate = CafStageDocument.new(submission: submission,
-                                         document_uuid: doc.document_uuid,
-                                         document_name: 'copy.pdf')
+      duplicate = described_class.new(submission: submission,
+                                      document_uuid: doc.document_uuid,
+                                      document_name: 'copy.pdf')
       expect(duplicate).not_to be_valid
     end
   end
@@ -67,16 +69,16 @@ RSpec.describe CafStageDocument, type: :model do
     before { doc.save! }
 
     it '.internal returns internal_only documents' do
-      expect(CafStageDocument.internal).to include(doc)
+      expect(described_class.internal).to include(doc)
     end
 
     it '.pending_strip returns unstripped internal docs' do
-      expect(CafStageDocument.pending_strip).to include(doc)
+      expect(described_class.pending_strip).to include(doc)
     end
 
     it '.pending_strip excludes already-stripped docs' do
       doc.update!(stripped: true, stripped_at: Time.current)
-      expect(CafStageDocument.pending_strip).not_to include(doc)
+      expect(described_class.pending_strip).not_to include(doc)
     end
   end
 

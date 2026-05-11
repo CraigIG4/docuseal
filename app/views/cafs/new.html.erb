@@ -83,31 +83,31 @@
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px;">
             <div>
               <label class="field-label">Requestor Name</label>
-              <%= f.text_field :requestor_name, class: 'field-input', placeholder: 'Full name' %>
+              <%= f.text_field :requestor_name, class: 'field-input', autocomplete: 'name', placeholder: 'Full name' %>
             </div>
             <div>
               <label class="field-label">Requestor Email</label>
-              <%= f.email_field :requestor_email, class: 'field-input', placeholder: 'email@ignitiongroup.co.za' %>
+              <%= f.email_field :requestor_email, class: 'field-input', autocomplete: 'email', placeholder: 'email@ignitiongroup.co.za' %>
             </div>
           </div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px;">
             <div>
               <label class="field-label">Contracting Party (Counterparty Name) <span style="color:#e53e3e;">*</span></label>
-              <%= f.text_field :contracting_party, class: 'field-input', placeholder: 'e.g. Acme Corp Pty Ltd', required: true %>
+              <%= f.text_field :contracting_party, class: 'field-input', autocomplete: 'organization', placeholder: 'e.g. Acme Corp Pty Ltd', required: true %>
             </div>
             <div>
               <label class="field-label">Ignition Company</label>
-              <%= f.text_field :ignition_company, class: 'field-input', placeholder: 'e.g. Comit Technologies', id: 'ignition_company_field' %>
+              <%= f.text_field :ignition_company, class: 'field-input', autocomplete: 'off', placeholder: 'e.g. Comit Technologies', id: 'ignition_company_field' %>
             </div>
           </div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px;">
             <div>
               <label class="field-label">Counterparty Contact Name</label>
-              <%= f.text_field :counterparty_name, class: 'field-input', placeholder: 'Authorised signatory name' %>
+              <%= f.text_field :counterparty_name, class: 'field-input', autocomplete: 'off', placeholder: 'Authorised signatory name' %>
             </div>
             <div>
               <label class="field-label">Counterparty Email <span style="color:#e53e3e;">*</span></label>
-              <%= f.email_field :counterparty_email, class: 'field-input', placeholder: 'signatory@counterparty.com', required: true %>
+              <%= f.email_field :counterparty_email, class: 'field-input', autocomplete: 'email', placeholder: 'signatory@counterparty.com', required: true %>
             </div>
           </div>
           <div style="margin-bottom:20px;">

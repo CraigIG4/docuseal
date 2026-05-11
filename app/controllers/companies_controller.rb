@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # IGSIGN — Counterparty company directory
 class CompaniesController < ApplicationController
   before_action :authenticate_user!
@@ -7,7 +8,11 @@ class CompaniesController < ApplicationController
   def index
     @companies = current_account.companies.alphabetical
     @companies = @companies.search(params[:q]) if params[:q].present?
-    @total     = current_account.companies.count
+    @total = current_account.companies.count
+  end
+
+  def show
+    @agreements = @company.caf_workflows.recent.limit(10)
   end
 
   def new
@@ -15,18 +20,14 @@ class CompaniesController < ApplicationController
   end
 
   def create
-    @company         = Company.new(company_params)
+    @company = Company.new(company_params)
     @company.account = current_account
 
     if @company.save
       redirect_to companies_path, notice: "#{@company.name} added to your directory."
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
-  end
-
-  def show
-    @agreements = @company.caf_workflows.recent.limit(10)
   end
 
   def edit; end
@@ -35,7 +36,7 @@ class CompaniesController < ApplicationController
     if @company.update(company_params)
       redirect_to company_path(@company), notice: 'Counterparty updated.'
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 

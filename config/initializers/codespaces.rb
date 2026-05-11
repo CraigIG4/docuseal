@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # IGSIGN: GitHub Codespaces dev preview compatibility (DEV ENV ONLY)
 # The Codespace tunnel rewrites Host headers, breaking CSRF Origin checks.
 # This bypass is gated to ENV['CODESPACES'] which is only set inside a Codespace.

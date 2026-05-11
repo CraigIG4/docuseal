@@ -13,8 +13,8 @@
         <% current_path = request.path %>
         <% [
           ['Agreements', '/agreements'],
-          ['Templates',  '/templates'],
-          ['Contacts',   '/companies']
+          ['Templates', '/templates'],
+          ['Contacts', '/companies']
         ].each do |label, path| %>
           <% active = current_path.start_with?(path) %>
           <a href="<%= path %>"
@@ -73,7 +73,7 @@
             <% if can?(:manage, EncryptedConfig) && !Docuseal.demo? %>
               <li>
                 <%= link_to Docuseal.multitenant? ? console_redirect_index_path : Docuseal::CONSOLE_URL,
-                      data: { prefetch: false }, class: 'flex items-center gap-2 text-sm' do %>
+                    data: { prefetch: false }, class: 'flex items-center gap-2 text-sm' do %>
                   <%= svg_icon('terminal', class: 'w-4 h-4 flex-shrink-0') %><%= t('console') %>
                 <% end %>
               </li>
@@ -97,7 +97,7 @@
             <% end %>
             <li class="border-t border-base-300 mt-1 pt-1">
               <%= button_to destroy_user_session_path, method: :delete, data: { turbo: false },
-                    class: 'flex items-center gap-2 text-sm w-full text-left' do %>
+                  class: 'flex items-center gap-2 text-sm w-full text-left' do %>
                 <%= svg_icon('logout', class: 'w-4 h-4 flex-shrink-0') %><%= t('sign_out') %>
               <% end %>
             </li>
@@ -115,8 +115,8 @@
     <% else %>
       <% if request.path != new_user_session_path && request.path != setup_index_path %>
         <%= link_to new_user_session_path({ lang: params[:lang] }.compact_blank),
-              class: 'flex items-center gap-1.5 text-sm font-semibold',
-              style: 'color:#ffffff; text-decoration:none;' do %>
+            class: 'flex items-center gap-1.5 text-sm font-semibold',
+            style: 'color:#ffffff; text-decoration:none;' do %>
           <%= svg_icon('login', class: 'w-5 h-5') %>
           <span><%= t('sign_in') %></span>
         <% end %>

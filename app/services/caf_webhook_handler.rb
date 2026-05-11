@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # IGSIGN — Processes DocuSeal submitter completion events for CAF workflows.
 # Called from SubmissionEventsController (or Submission#after_complete callback).
 # Determines which CAF stage just completed and fires the appropriate handler.
@@ -14,11 +15,7 @@ class CafWebhookHandler
     caf = find_caf_workflow
     return unless caf
 
-    active_stage = caf.caf_submission
-                      &.caf_stages
-                      &.where(status: 'active')
-                      &.ordered_by_position
-                      &.first
+    active_stage = active_stage_for(caf)
     return unless active_stage
 
     return unless active_stage.all_submitters_complete?
@@ -39,5 +36,10 @@ class CafWebhookHandler
 
   def find_caf_workflow
     CafWorkflow.find_by(caf_submission_id: @submission.id)
+  end
+
+  def active_stage_for(caf)
+    caf_stages = caf.caf_submission&.caf_stages
+    caf_stages&.where(status: 'active')&.ordered_by_position&.first
   end
 end

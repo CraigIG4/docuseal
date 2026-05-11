@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Declarative rules table: maps document_type → required stage chain per account.
 # Seed data lives in db/seeds/caf_approval_matrices.rb.
 #
@@ -51,11 +53,11 @@ class CafApprovalMatrix < ApplicationRecord
   def build_stages_for(submission)
     stages_config.each_with_index.map do |cfg, idx|
       submission.caf_stages.build(
-        name:                       cfg['name'],
-        position:                   idx,
-        routing:                    cfg.fetch('routing', 'ordered'),
+        name: cfg['name'],
+        position: idx,
+        routing: cfg.fetch('routing', 'ordered'),
         strip_internal_on_complete: cfg.fetch('strip_internal_on_complete', false),
-        status:                     idx.zero? ? 'active' : 'pending'
+        status: idx.zero? ? 'active' : 'pending'
       )
     end
   end
@@ -64,10 +66,9 @@ class CafApprovalMatrix < ApplicationRecord
 
   def stages_config_valid
     return unless stages_config.is_a?(Array)
+
     stages_config.each_with_index do |stage, idx|
-      unless stage['name'].present?
-        errors.add(:stages_config, "stage #{idx}: 'name' is required")
-      end
+      errors.add(:stages_config, "stage #{idx}: 'name' is required") unless stage['name'].present?
       unless stage['required_roles'].is_a?(Array) && stage['required_roles'].any?
         errors.add(:stages_config, "stage #{idx}: 'required_roles' must be a non-empty array")
       end

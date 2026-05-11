@@ -86,7 +86,7 @@ RSpec.describe 'Profile Settings' do
 
       email = ActionMailer::Base.deliveries.last
       reset_password_url = email.body
-                                .encoded[/href="([^"]+)"/, 1]
+                                .decoded[/href="([^"]+)"/, 1]
                                 .sub(%r{https?://(.*?)/}, "#{Capybara.current_session.server.base_url}/")
 
       visit reset_password_url

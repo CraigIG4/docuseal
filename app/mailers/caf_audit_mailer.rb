@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # IGSIGN — Mailer for the final audit bundle delivery.
 class CafAuditMailer < ApplicationMailer
   default from: -> { GlobalConfig.dig(:app, :from_email) || 'igsign@ignitiongroup.co.za' }
@@ -18,8 +19,8 @@ class CafAuditMailer < ApplicationMailer
     end
 
     mail(
-      to:      "\"#{to_name}\" <#{to_email}>",
-      subject: "Signed Agreement — #{caf.contracting_party} — #{@signed_date}",
+      to: "\"#{to_name}\" <#{to_email}>",
+      subject: "Signed Agreement — #{caf.contracting_party} — #{@signed_date}"
     )
   end
 end

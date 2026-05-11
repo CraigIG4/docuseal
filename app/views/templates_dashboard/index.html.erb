@@ -3,9 +3,9 @@
 <% if Docuseal.demo? %><%= render 'shared/demo_alert' %><% end %>
 <%# IGSIGN Dashboard Stats Header %>
 <% _tmpl_count = @pagy.count || @templates.size %>
-<% _sub_count  = begin; current_account.submissions.not_archived.count; rescue; 0; end %>
-<% _done_count = begin; current_account.submissions.not_archived.completed.count; rescue; 0; end %>
-<% _pend_count = begin; current_account.submissions.not_archived.pending.count; rescue; 0; end %>
+<% _sub_count = begin; current_account.submissions.not_archived.count; rescue StandardError; 0; end %>
+<% _done_count = begin; current_account.submissions.not_archived.completed.count; rescue StandardError; 0; end %>
+<% _pend_count = begin; current_account.submissions.not_archived.pending.count; rescue StandardError; 0; end %>
 
 <div style="background:#162B3C;border-radius:12px;padding:24px 28px;margin-bottom:24px;position:relative;overflow:hidden;">
   <div style="position:absolute;inset:0;background-image:url('/brand/igsign-background-pattern.svg');background-size:cover;background-position:center right;opacity:0.15;pointer-events:none;"></div>

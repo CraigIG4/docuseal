@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Tracks per-submission document metadata for the CAF engine.
 # internal_only: true means this document (e.g. the CAF itself) is stripped
 # from the outgoing manifest before external signing stages begin.
@@ -28,13 +30,13 @@
 class CafStageDocument < ApplicationRecord
   belongs_to :submission
 
-  validates :document_uuid,  presence: true
-  validates :document_name,  presence: true
-  validates :document_uuid,  uniqueness: { scope: :submission_id }
+  validates :document_uuid, presence: true
+  validates :document_name, presence: true
+  validates :document_uuid, uniqueness: { scope: :submission_id }
 
-  scope :internal,      -> { where(internal_only: true) }
-  scope :external,      -> { where(internal_only: false) }
-  scope :stripped,      -> { where(stripped: true) }
+  scope :internal, -> { where(internal_only: true) }
+  scope :external, -> { where(internal_only: false) }
+  scope :stripped, -> { where(stripped: true) }
   scope :pending_strip, -> { where(internal_only: true, stripped: false) }
 
   def strip!

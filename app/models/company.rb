@@ -50,6 +50,6 @@ class Company < ApplicationRecord
   end
 
   def sync_agreements_count!
-    update_column(:agreements_count, caf_workflows.count) # rubocop:disable Rails/SkipsModelValidations
+    update_column(:agreements_count, caf_workflows.count)
   end
 end

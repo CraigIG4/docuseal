@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # IGSIGN — Fired when all IG internal signatories have completed Stage 1.
 # Responsibilities:
 #   1. Mark Stage 1 complete, strip internal CAF pages from the document bundle.
@@ -38,7 +39,7 @@ class CafCompletionHandler
     end
 
     { success: true }
-  rescue => e
+  rescue StandardError => e
     Rails.logger.error("[CafCompletionHandler] failed for CAF #{@caf.id}: #{e.message}\n#{e.backtrace.first(5).join("\n")}")
     { success: false, error: e.message }
   end
@@ -63,20 +64,19 @@ class CafCompletionHandler
     return if stage2.caf_stage_submitters.exists?
 
     submitter = submission.submitters.create!(
-      account:  @caf.account,
-      name:     @caf.counterparty_name.presence || @caf.contracting_party,
-      email:    @caf.counterparty_email,
-      uuid:     SecureRandom.uuid,
-      slug:     SecureRandom.base58(14),
-      metadata: { 'caf_role' => 'Counterparty Signatory', 'stage' => 2 },
+      account: @caf.account,
+      name: @caf.counterparty_name.presence || @caf.contracting_party,
+      email: @caf.counterparty_email,
+      uuid: SecureRandom.uuid,
+      slug: SecureRandom.base58(14),
+      metadata: { 'caf_role' => 'Counterparty Signatory', 'stage' => 2 }
     )
 
     CafStageSubmitter.create!(
       caf_stage: stage2,
-      submitter:  submitter,
-      role:       'Counterparty Signatory',
-      position:   0,
+      submitter: submitter,
+      role: 'Counterparty Signatory',
+      position: 0
     )
   end
-
 end

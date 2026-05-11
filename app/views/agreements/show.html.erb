@@ -31,17 +31,17 @@
     <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Progress</p>
     <div class="flex items-center">
       <% stages_config = [
-        { key: 'draft',             label: 'Draft'           },
-        { key: 'pending_ig',        label: 'IG Approval'     },
-        { key: 'ig_complete',       label: 'IG Approved'     },
+        { key: 'draft', label: 'Draft' },
+        { key: 'pending_ig', label: 'IG Approval' },
+        { key: 'ig_complete', label: 'IG Approved' },
         { key: 'sent_counterparty', label: 'With Counterparty' },
-        { key: 'complete',          label: 'Complete'        }
+        { key: 'complete', label: 'Complete' }
       ] %>
       <% status_order = CafWorkflow::STATUSES - ['cancelled'] %>
-      <% current_idx  = status_order.index(@agreement.status) || 0 %>
+      <% current_idx = status_order.index(@agreement.status) || 0 %>
       <% stages_config.each_with_index do |s, i| %>
         <% s_idx = status_order.index(s[:key]) || i %>
-        <% is_done   = s_idx < current_idx %>
+        <% is_done = s_idx < current_idx %>
         <% is_active = s_idx == current_idx %>
         <div class="flex flex-col items-center">
           <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all

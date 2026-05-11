@@ -8,8 +8,8 @@
       <p class="text-sm text-gray-400 mt-0.5"><%= @total %> <%= @total == 1 ? 'company' : 'companies' %> in your directory</p>
     </div>
     <%= link_to new_company_path,
-          class: 'flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white',
-          style: 'background-color:#1a2332;' do %>
+        class: 'flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white',
+        style: 'background-color:#1a2332;' do %>
       <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
       Add Company
     <% end %>
@@ -19,7 +19,7 @@
   <%= form_with url: companies_path, method: :get, class: 'mb-4' do |f| %>
     <div class="relative max-w-xs">
       <%= f.text_field :q, value: params[:q], placeholder: 'Search companies...',
-            class: 'w-full rounded-lg border border-gray-300 px-3 py-2 pl-9 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500' %>
+          class: 'w-full rounded-lg border border-gray-300 px-3 py-2 pl-9 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500' %>
       <svg class="absolute left-3 top-2.5 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
       </svg>
@@ -77,8 +77,8 @@
       <p class="text-gray-500 font-medium mb-1">No counterparties yet</p>
       <p class="text-sm text-gray-400 mb-4">Companies are added automatically when you create an agreement, or you can add them manually.</p>
       <%= link_to 'Add Company', new_company_path,
-            class: 'inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold text-white',
-            style: 'background-color:#1a2332;' %>
+          class: 'inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold text-white',
+          style: 'background-color:#1a2332;' %>
     </div>
   <% end %>
 

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # IGSIGN — Sends the final audit bundle after the counterparty has signed.
 # Audit bundle includes:
 #   - The fully executed contract (all pages signed)
@@ -23,7 +24,7 @@ class CafAuditBundleSender
 
     Rails.logger.info("[CafAuditBundleSender] CAF #{@caf.id} fully complete — audit bundle sent")
     { success: true }
-  rescue => e
+  rescue StandardError => e
     Rails.logger.error("[CafAuditBundleSender] failed for CAF #{@caf.id}: #{e.message}\n#{e.backtrace.first(5).join("\n")}")
     { success: false, error: e.message }
   end
@@ -31,7 +32,9 @@ class CafAuditBundleSender
   private
 
   def counterparty_stage
-    @caf.caf_submission&.caf_stages&.ordered_by_position&.second
+    caf_submission = @caf.caf_submission
+    caf_stages = caf_submission&.caf_stages
+    caf_stages&.ordered_by_position&.second
   end
 
   def deliver_audit_bundle
@@ -39,11 +42,11 @@ class CafAuditBundleSender
 
     recipients.each do |recipient|
       CafAuditMailer.audit_bundle(
-        caf:        @caf,
-        to_name:    recipient[:name],
-        to_email:   recipient[:email],
+        caf: @caf,
+        to_name: recipient[:name],
+        to_email: recipient[:email]
       ).deliver_later
-    rescue => e
+    rescue StandardError => e
       Rails.logger.warn("[CafAuditBundleSender] Failed to send to #{recipient[:email]}: #{e.message}")
     end
   end
@@ -51,12 +54,8 @@ class CafAuditBundleSender
   def audit_recipients
     recipients = []
 
-    # IG Requestor
-    if @caf.requestor_email.present?
-      recipients << { name: @caf.requestor_name, email: @caf.requestor_email }
-    end
+    recipients << { name: @caf.requestor_name, email: @caf.requestor_email } if @caf.requestor_email.present?
 
-    # Counterparty
     if @caf.counterparty_email.present?
       recipients << { name: @caf.counterparty_name.presence || @caf.contracting_party, email: @caf.counterparty_email }
     end

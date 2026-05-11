@@ -43,7 +43,7 @@ module Submissions
 
         io = StringIO.new
 
-        document.trailer.info[:Creator] = "IGSIGN — Ignition Group e-Signing Portal (https://sign.ignitiongroup.co.za)"
+        document.trailer.info[:Creator] = 'IGSIGN — Ignition Group e-Signing Portal (https://sign.ignitiongroup.co.za)'
 
         if pkcs
           sign_params = {

@@ -14,7 +14,8 @@
       </p>
       <% unless signed_in? %>
         <div class="mt-10">
-          <%= link_to new_user_session_path, class: 'inline-flex items-center gap-2 px-7 py-3 rounded font-semibold text-sm transition-all duration-150 hover:opacity-90',
+          <%= link_to new_user_session_path,
+                class: 'inline-flex items-center gap-2 px-7 py-3 rounded font-semibold text-sm transition-all duration-150 hover:opacity-90',
                 style: 'background-color:#45AC34; color:#ffffff; letter-spacing:0.04em; text-decoration:none;' do %>
             <%= svg_icon('login', class: 'w-4 h-4 text-white') %>
             <span>Sign In to IGSIGN</span>

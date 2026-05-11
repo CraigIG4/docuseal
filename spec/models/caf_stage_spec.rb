@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: caf_stages
@@ -29,13 +31,8 @@ require 'rails_helper'
 RSpec.describe CafStage, type: :model do
   # DocuSeal factory chain: user owns account, template shares that account.
   # This ensures account.users.minimum(:id) is non-nil for default_template_folder.
-  let(:user)       { create(:user) }
-  let(:account)    { user.account }
-  let(:template)   { create(:template, author: user, account: account) }
-  let(:submission) { create(:submission, template: template, created_by_user: user) }
-
   subject(:stage) do
-    CafStage.new(
+    described_class.new(
       submission: submission,
       name:       'Internal CAF Approval',
       position:   0,
@@ -43,6 +40,11 @@ RSpec.describe CafStage, type: :model do
       status:     'pending'
     )
   end
+
+  let(:user)       { create(:user) }
+  let(:account)    { user.account }
+  let(:template)   { create(:template, author: user, account: account) }
+  let(:submission) { create(:submission, template: template, created_by_user: user) }
 
   # == Validations =============================================================
 
@@ -68,8 +70,8 @@ RSpec.describe CafStage, type: :model do
 
     it 'enforces unique position per submission' do
       stage.save!
-      duplicate = CafStage.new(submission: submission, name: 'Other', position: 0,
-                                routing: 'ordered', status: 'pending')
+      duplicate = described_class.new(submission: submission, name: 'Other', position: 0,
+                                      routing: 'ordered', status: 'pending')
       expect(duplicate).not_to be_valid
       expect(duplicate.errors[:position]).to include('has already been taken')
     end
@@ -78,13 +80,15 @@ RSpec.describe CafStage, type: :model do
   # == Associations ============================================================
 
   describe 'associations' do
-    it "has caf_stage_submitters" do
-      expect(CafStage.reflect_on_association(:caf_stage_submitters).macro).to eq(:has_many)
+    it 'has caf_stage_submitters' do
+      expect(described_class.reflect_on_association(:caf_stage_submitters).macro).to eq(:has_many)
     end
-    it "has submitters through caf_stage_submitters" do
-      expect(CafStage.reflect_on_association(:submitters).options[:through]).to eq(:caf_stage_submitters)
+
+    it 'has submitters through caf_stage_submitters' do
+      expect(described_class.reflect_on_association(:submitters).options[:through]).to eq(:caf_stage_submitters)
     end
-    it "belongs to submission" do
+
+    it 'belongs to submission' do
       stage.save!
       expect(stage.submission).to eq(submission)
     end
@@ -96,17 +100,17 @@ RSpec.describe CafStage, type: :model do
     before { stage.save! }
 
     it '.pending returns pending stages' do
-      expect(CafStage.pending).to include(stage)
+      expect(described_class.pending).to include(stage)
     end
 
     it '.active excludes pending stages' do
-      expect(CafStage.active).not_to include(stage)
+      expect(described_class.active).not_to include(stage)
     end
 
     it '.ordered_by_position sorts by position asc' do
-      stage2 = CafStage.create!(submission: submission, name: 'Stage 2',
-                                  position: 1, routing: 'parallel', status: 'pending')
-      expect(CafStage.ordered_by_position.to_a).to eq([stage, stage2])
+      stage2 = described_class.create!(submission: submission, name: 'Stage 2',
+                                       position: 1, routing: 'parallel', status: 'pending')
+      expect(described_class.ordered_by_position.to_a).to eq([stage, stage2])
     end
   end
 
@@ -175,7 +179,7 @@ RSpec.describe CafStage, type: :model do
     before do
       stage.save!
       CafStageSubmitter.create!(caf_stage: stage, submitter: submitter,
-                                  role: 'CLO', position: 0)
+                                role: 'CLO', position: 0)
     end
 
     it 'returns false when submitter has not signed' do

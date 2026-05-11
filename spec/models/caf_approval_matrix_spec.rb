@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: caf_approval_matrices
@@ -22,6 +24,13 @@
 require 'rails_helper'
 
 RSpec.describe CafApprovalMatrix, type: :model do
+  subject(:matrix) do
+    described_class.new(
+      account: account, document_type: 'contract',
+      stages_config: valid_stages_config, active: true
+    )
+  end
+
   let(:user)    { create(:user) }
   let(:account) { user.account }
 
@@ -33,13 +42,6 @@ RSpec.describe CafApprovalMatrix, type: :model do
       { 'name' => 'Counterparty Signing', 'routing' => 'parallel',
         'required_roles' => ['counterparty'] }
     ]
-  end
-
-  subject(:matrix) do
-    CafApprovalMatrix.new(
-      account: account, document_type: 'contract',
-      stages_config: valid_stages_config, active: true
-    )
   end
 
   # == Validations =============================================================
@@ -77,12 +79,12 @@ RSpec.describe CafApprovalMatrix, type: :model do
     before { matrix.save! }
 
     it 'finds an active matrix by account and document_type' do
-      expect(CafApprovalMatrix.for(account, 'contract')).to eq(matrix)
+      expect(described_class.for(account, 'contract')).to eq(matrix)
     end
 
     it 'returns nil for an inactive matrix' do
       matrix.update!(active: false)
-      expect(CafApprovalMatrix.for(account, 'contract')).to be_nil
+      expect(described_class.for(account, 'contract')).to be_nil
     end
   end
 

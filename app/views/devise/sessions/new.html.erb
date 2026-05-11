@@ -161,14 +161,14 @@
         <%= render 'hidden_fields' %>
 
         <div style="margin-bottom:18px;">
-          <label class="igsign-label">Email address</label>
+          <%= f.label :email, t(:email), class: 'igsign-label' %>
           <%= f.email_field :email, autofocus: true, autocomplete: 'email',
               class: 'igsign-input', placeholder: 'you@ignitiongroup.co.za' %>
         </div>
 
         <div style="margin-bottom:6px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <label class="igsign-label" style="margin-bottom:0;">Password</label>
+            <%= f.label :password, t(:password), class: 'igsign-label', style: 'margin-bottom:0;' %>
             <%= link_to 'Forgot password?', new_user_password_path,
                 style: 'font-size:12px; color:#45AC34; font-weight:600; text-decoration:none;' %>
           </div>
@@ -185,7 +185,7 @@
         </div>
 
         <div style="margin-top:18px;">
-          <%= f.button button_title(title: 'Sign in to IGSIGN', disabled_with: 'Signing in…'), class: 'igsign-btn' %>
+          <%= f.button button_title(title: t(:sign_in), disabled_with: t(:signing_in)), class: 'igsign-btn' %>
         </div>
       <% end %>
 

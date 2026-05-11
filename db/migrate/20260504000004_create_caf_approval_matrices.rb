@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreateCafApprovalMatrices < ActiveRecord::Migration[8.1]
   def change
     create_table :caf_approval_matrices do |t|
@@ -12,6 +14,6 @@ class CreateCafApprovalMatrices < ActiveRecord::Migration[8.1]
               %i[account_id document_type],
               unique: true,
               where: 'active = true',
-              name:  'idx_caf_approval_matrices_active_unique'
+              name: 'idx_caf_approval_matrices_active_unique'
   end
 end

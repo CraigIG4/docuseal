@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # IGSIGN — CAF Stage Engine
 # A Stage is one phase of a Submission's lifecycle (e.g. "Internal CAF Approval",
 # "Counterparty Signing"). Stages are ordered by :position and run sequentially.
@@ -30,32 +32,31 @@
 #
 class CafStage < ApplicationRecord
   ROUTING_OPTIONS = %w[ordered parallel hybrid].freeze
-  STATUS_OPTIONS  = %w[pending active complete skipped].freeze
+  STATUS_OPTIONS = %w[pending active complete skipped].freeze
 
   belongs_to :submission
-  has_many   :caf_stage_submitters, dependent: :destroy
-  has_many   :submitters, through: :caf_stage_submitters
-  has_many   :caf_stage_documents, through: :submission, foreign_key: :submission_id
+  has_many :caf_stage_submitters, dependent: :destroy
+  has_many :submitters, through: :caf_stage_submitters
+  has_many :caf_stage_documents, through: :submission, foreign_key: :submission_id
 
-  validates :name,     presence: true
+  validates :name, presence: true
   validates :position, presence: true,
             numericality: { only_integer: true, greater_than_or_equal_to: 0 }
-  validates :routing,  inclusion: { in: ROUTING_OPTIONS }
-  validates :status,   inclusion: { in: STATUS_OPTIONS }
+  validates :routing, inclusion: { in: ROUTING_OPTIONS }
+  validates :status, inclusion: { in: STATUS_OPTIONS }
   validates :position, uniqueness: { scope: :submission_id }
 
   scope :ordered_by_position, -> { order(position: :asc) }
-  scope :pending,             -> { where(status: 'pending') }
-  scope :active,              -> { where(status: 'active') }
-  scope :complete,            -> { where(status: 'complete') }
+  scope :pending, -> { where(status: 'pending') }
+  scope :active, -> { where(status: 'active') }
+  scope :complete, -> { where(status: 'complete') }
 
   # Transition: pending → active. Fires invite notifications.
   def activate!
     update!(status: 'active', activated_at: Time.current)
     case routing
-    when 'ordered'  then notify_next_submitter!
-    when 'parallel' then notify_all_submitters!
-    when 'hybrid'   then notify_all_submitters!  # hybrid handled externally if needed
+    when 'ordered' then notify_next_submitter!
+    when 'parallel', 'hybrid' then notify_all_submitters!
     end
   end
 
@@ -87,7 +88,7 @@ class CafStage < ApplicationRecord
   def strip_internal_documents!
     CafStageDocument
       .where(submission_id: submission_id, internal_only: true, stripped: false)
-      .update_all(stripped: true, stripped_at: Time.current) # rubocop:disable Rails/SkipsModelValidations
+      .update_all(stripped: true, stripped_at: Time.current)
   end
 
   def advance_to_next_stage!

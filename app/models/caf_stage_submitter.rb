@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Join table: links a Submitter to a CafStage with an explicit role and position.
 # Position controls notification order for ordered-routing stages.
 # == Schema Information
@@ -28,8 +30,8 @@ class CafStageSubmitter < ApplicationRecord
   belongs_to :caf_stage
   belongs_to :submitter
 
-  validates :role,        presence: true
-  validates :position,    presence: true,
+  validates :role, presence: true
+  validates :position, presence: true,
             numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :submitter_id, uniqueness: { scope: :caf_stage_id }
 

@@ -1,4 +1,4 @@
 <a href="<%= root_path %>" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
-  <%= render('shared/logo', dark: false, height: '28') rescue nil %>
+  <% begin %><%= render('shared/logo', dark: false, height: '28') %><% rescue StandardError; end %>
   <span style="font-size:13px;font-weight:700;color:#162B3C;letter-spacing:0.02em;">IGSIGN</span>
 </a>

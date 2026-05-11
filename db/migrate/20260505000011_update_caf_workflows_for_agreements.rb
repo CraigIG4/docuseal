@@ -8,7 +8,7 @@ class UpdateCafWorkflowsForAgreements < ActiveRecord::Migration[8.1]
 
     reversible do |dir|
       dir.up do
-        execute <<~SQL
+        execute <<~SQL.squish
           UPDATE caf_workflows
           SET agreement_type = CASE
             WHEN caf_type = 'nda'        THEN 'nda'
