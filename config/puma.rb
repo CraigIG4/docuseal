@@ -39,7 +39,7 @@ if ENV['WEB_CONCURRENCY_AUTO'] == 'true'
 
   workers Etc.nprocessors
 else
-  workers ENV.fetch('WEB_CONCURRENCY', 0)
+  workers ENV.fetch('PUMA_WORKERS', 0)
 end
 
 # Use the `preload_app!` method when specifying a `workers` number.
