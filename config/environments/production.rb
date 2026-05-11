@@ -73,9 +73,18 @@ Rails.application.configure do
 
   config.action_mailer.perform_caching = false
 
-  # Ignore bad email addresses and do not raise email delivery errors.
-  # Set this to true and configure the email server for immediate delivery to raise delivery errors.
-  config.action_mailer.raise_delivery_errors = false
+  # Raise delivery errors so failures appear in logs (disable post-pilot once stable).
+  config.action_mailer.raise_delivery_errors = true
+  config.action_mailer.perform_deliveries = true
+
+  config.action_mailer.default_url_options = {
+    host:     ENV.fetch('ACTION_MAILER_HOST', 'igsign.onrender.com'),
+    protocol: 'https'
+  }
+
+  if ENV['SMTP_FROM'].present?
+    config.action_mailer.default_options = { from: ENV.fetch('SMTP_FROM') }
+  end
 
   if ENV['SMTP_ADDRESS']
     config.action_mailer.delivery_method = :smtp

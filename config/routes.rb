@@ -5,13 +5,13 @@ Rails.application.routes.draw do
 
   if !Docuseal.multitenant? && defined?(Sidekiq::Web)
     authenticated :user, ->(u) { u.sidekiq? } do
-      mount Sidekiq::Web => '/jobs'
+      mount Sidekiq::Web => '/admin/sidekiq'
     end
   end
 
   root 'dashboard#index'
 
-  get 'up' => 'rails/health#show'
+  get 'up', to: 'health#show'
 
   # IGSIGN internal webhook — receives submitter-completion events from DocuSeal's
   # own job pipeline. Protected by X-Internal-Webhook-Secret header.
