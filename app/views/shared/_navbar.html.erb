@@ -12,18 +12,19 @@
       <%# Primary nav — desktop %>
       <div style="display:flex; align-items:center; gap:4px; flex:1; margin:0 24px;">
         <% current_path = request.path %>
-        <% [
-          ['Agreements', '/agreements'],
-          ['Templates', '/templates'],
-          ['Contacts', '/companies']
-        ].each do |label, path| %>
+        <%# Build nav links; Operations + Templates admin-only. TODO Sprint 3: open Templates to all users. %>
+        <% nav_links = [['Agreements', '/agreements']] %>
+        <% nav_links << ['Operations', '/admin/workflows'] if current_user.role == User::ADMIN_ROLE %>
+        <% nav_links << ['Templates',  '/templates']      if current_user.role == User::ADMIN_ROLE %>
+        <% nav_links << ['Contacts',   '/companies'] %>
+        <% nav_links.each do |label, path| %>
           <% active = current_path.start_with?(path) %>
           <a href="<%= path %>"
-             style="display:inline-flex; align-items:center; padding:6px 12px; border-radius:6px; font-size:14px; font-weight:500; text-decoration:none; transition:background 0.15s;
-                    color: <%= active ? '#ffffff' : 'rgba(255,255,255,0.85)' %>;
-                    background: <%= active ? 'rgba(255,255,255,0.12)' : 'transparent' %>;"
-             onmouseover="if(!this.dataset.active){this.style.background='rgba(255,255,255,0.08)'; this.style.color='#fff';}"
-             onmouseout="if(!this.dataset.active){this.style.background='transparent'; this.style.color='rgba(255,255,255,0.85)';}"
+             style="display:inline-flex; align-items:center; padding:6px 12px 5px; font-size:14px; font-weight:500; text-decoration:none; transition:color 0.15s;
+                    color: <%= active ? '#ffffff' : 'rgba(255,255,255,0.75)' %>;
+                    border-bottom: 2px solid <%= active ? '#45AC34' : 'transparent' %>;"
+             onmouseover="this.style.color='#fff';"
+             onmouseout="this.style.color=this.dataset.active==='true' ? '#fff' : 'rgba(255,255,255,0.75)';"
              data-active="<%= active %>">
             <%= label %>
           </a>
@@ -44,17 +45,19 @@
           New Agreement
         </a>
 
-        <%# Settings %>
+        <%# Settings — desktop: icon + label; mobile: icon only %>
         <a href="<%= settings_profile_index_path %>"
            title="Settings"
+           aria-label="Settings"
            id="account_settings_button"
-           style="display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:6px; color:rgba(255,255,255,0.7); text-decoration:none; transition:background 0.15s;"
+           style="display:flex; align-items:center; gap:5px; padding:6px 10px; border-radius:6px; color:rgba(255,255,255,0.7); text-decoration:none; transition:background 0.15s; font-size:14px; font-weight:500;"
            onmouseover="this.style.background='rgba(255,255,255,0.1)'; this.style.color='#fff';"
            onmouseout="this.style.background='transparent'; this.style.color='rgba(255,255,255,0.7)';">
-          <svg xmlns="http://www.w3.org/2000/svg" style="width:17px;height:17px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:17px;height:17px;flex-shrink:0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
             <circle cx="12" cy="12" r="3"/>
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
           </svg>
+          <span class="hidden md:inline">Settings</span>
         </a>
 
         <%# User avatar dropdown — DaisyUI kept for dropdown function %>
@@ -132,12 +135,18 @@
     <div id="igsign-mobile-nav"
          style="display:none; flex-direction:column; padding:8px 16px 12px; border-top:1px solid rgba(255,255,255,0.1); background-color:#162B3C;">
       <% current_path = request.path %>
-      <% [['Agreements', agreements_path], ['Templates', templates_path], ['Contacts', companies_path]].each do |label, path| %>
+      <%# Mirror desktop nav logic: Operations + Templates admin-only %>
+      <% mobile_links = [['Agreements', agreements_path]] %>
+      <% mobile_links << ['Operations', admin_workflows_path] if current_user.role == User::ADMIN_ROLE %>
+      <% mobile_links << ['Templates',  templates_path]       if current_user.role == User::ADMIN_ROLE %>
+      <% mobile_links << ['Contacts',   companies_path] %>
+      <% mobile_links.each do |label, path| %>
         <% active = current_path.start_with?(path) %>
         <a href="<%= path %>"
            style="display:block; padding:10px 12px; border-radius:6px; font-size:14px; font-weight:500; text-decoration:none; margin-bottom:2px;
                   color: <%= active ? '#ffffff' : 'rgba(255,255,255,0.85)' %>;
-                  background: <%= active ? 'rgba(255,255,255,0.12)' : 'transparent' %>;">
+                  border-left: 3px solid <%= active ? '#45AC34' : 'transparent' %>;
+                  background: <%= active ? 'rgba(255,255,255,0.08)' : 'transparent' %>;">
           <%= label %>
         </a>
       <% end %>

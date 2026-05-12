@@ -9,7 +9,12 @@ Rails.application.routes.draw do
     end
   end
 
-  root 'dashboard#index'
+  # Authenticated users land on /agreements; unauthenticated see the sign-in page.
+  # /dashboard remains accessible for admins who need the DocuSeal submission view.
+  authenticated :user do
+    root to: 'agreements#index', as: :authenticated_root
+  end
+  root to: 'sessions#new'
 
   get 'up', to: 'health#show'
 
@@ -79,14 +84,22 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :cafs, only: %i[index new create show edit update destroy] do
-    member do
-      post :submit
-    end
-    collection do
-      get :signatories_for
+  # Admin-only CAF workflow management (previously /cafs).
+  namespace :admin do
+    resources :workflows, only: %i[index new create show edit update destroy] do
+      member do
+        post :submit
+      end
+      collection do
+        get :signatories_for
+      end
     end
   end
+
+  # Legacy /cafs redirects — keeps bookmarks and old links working.
+  get '/cafs/signatories_for', to: redirect('/admin/workflows/signatories_for')
+  get '/cafs',                 to: redirect('/admin/workflows')
+  get '/cafs/:id',             to: redirect { |p, _| "/admin/workflows/#{p[:id]}" }
   resources :setup, only: %i[index create]
   resource :newsletter, only: %i[show update]
   resources :enquiries, only: %i[create]
