@@ -98,12 +98,12 @@ class CafStage < ApplicationRecord
 
   def notify_next_submitter!
     submitter = next_pending_submitter
-    SendSubmitterInviteJob.perform_later(submitter) if submitter
+    SendSubmitterInvitationEmailJob.perform_async('submitter_id' => submitter.id) if submitter
   end
 
   def notify_all_submitters!
     submitters.where(sent_at: nil).each do |s|
-      SendSubmitterInviteJob.perform_later(s)
+      SendSubmitterInvitationEmailJob.perform_async('submitter_id' => s.id)
     end
   end
 end

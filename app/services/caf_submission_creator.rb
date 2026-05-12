@@ -100,7 +100,7 @@ class CafSubmissionCreator
     Template.create!(
       account: @caf.account,
       name: 'IGSIGN CAF Template',
-      created_by: @user,
+      author: @user,
       fields: [],
       schema: [],
       submitters: [{ 'name' => 'Approver', 'uuid' => SecureRandom.uuid }]
