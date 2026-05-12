@@ -2,6 +2,7 @@
 
 # IGSIGN — Counterparty company directory
 class CompaniesController < ApplicationController
+  skip_authorization_check
   before_action :authenticate_user!
   before_action :set_company, only: %i[show edit update]
 
