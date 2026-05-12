@@ -60,11 +60,17 @@ class CafStage < ApplicationRecord
     end
   end
 
-  # Transition: active → complete. Strips internal docs if flagged, then advances.
+  # Transition: active → complete. Records audit marker on internal docs if
+  # flagged, then advances to the next stage.
+  #
+  # Note: the stripped/stripped_at columns are INFORMATIONAL audit markers only.
+  # Visibility filtering is enforced at query time by Submission#documents_for
+  # and SubmitFormController#maybe_filter_caf_schema_for_counterparty using the
+  # internal_only flag.  No PDF bytes are manipulated.
   def complete!
     transaction do
       update!(status: 'complete', completed_at: Time.current)
-      strip_internal_documents! if strip_internal_on_complete?
+      record_internal_document_transition! if strip_internal_on_complete?
       advance_to_next_stage!
     end
   end
@@ -85,7 +91,10 @@ class CafStage < ApplicationRecord
 
   private
 
-  def strip_internal_documents!
+  # Sets stripped: true on all internal-only CafStageDocuments as an audit
+  # marker recording when Stage 1 completed.  This does NOT remove any bytes
+  # from storage — visibility is controlled by Submission#documents_for.
+  def record_internal_document_transition!
     CafStageDocument
       .where(submission_id: submission_id, internal_only: true, stripped: false)
       .update_all(stripped: true, stripped_at: Time.current)

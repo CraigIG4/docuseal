@@ -124,6 +124,11 @@ class Submission < ApplicationRecord
   end
 
   def schema_documents
+    # IGSIGN: CAF submissions carry documents at the submission level (CAF PDF +
+    # agreement) in addition to the template-level signing page.  Merge both
+    # sources so the signing form can render all documents.
+    return caf_mixed_schema_documents if caf_stage_documents.exists?
+
     return documents_attachments unless template_id?
 
     dynamic_count = template_schema&.count { |e| e['dynamic'] }.to_i
@@ -142,6 +147,46 @@ class Submission < ApplicationRecord
       template_schema_submission_dynamic_and_static_document_attachments
     else
       documents_attachments
+    end
+  end
+
+  # Returns the documents this submitter is permitted to see during signing.
+  #
+  # Stage 1 (internal IG signatories) — all documents (CAF summary + agreement).
+  # Stage 2+ (counterparty and beyond) — only documents with internal_only: false.
+  # Non-CAF submissions — no filtering applied.
+  def documents_for(submitter)
+    return schema_documents unless caf_stage_documents.exists?
+
+    stage = caf_stages.joins(:caf_stage_submitters)
+                      .find_by(caf_stage_submitters: { submitter_id: submitter.id })
+
+    # Stage 1 (position 0) or unrecognised submitter: full visibility.
+    return schema_documents if stage.nil? || stage.position.zero?
+
+    # Stage 2+: strip internal-only documents.
+    internal_uuids = caf_stage_documents.where(internal_only: true).pluck(:document_uuid).to_set
+    schema_documents.reject { |doc| internal_uuids.include?(doc.uuid) }
+  end
+
+  # Union of template-attached documents (the CAF signing page) and submission-
+  # attached documents (generated CAF PDF + uploaded agreement).
+  # Scoped to UUIDs present in template_schema so ordering/filtering is driven
+  # by the schema, not by insertion order.
+  def caf_mixed_schema_documents
+    @caf_mixed_schema_documents ||= begin
+      schema_uuids = (template_schema.presence || template&.schema || []).map { |e| e['attachment_uuid'] }
+      return ActiveStorage::Attachment.none if schema_uuids.empty?
+
+      tpl_scope = (template ? template.documents_attachments : ActiveStorage::Attachment.none)
+                    .where(uuid: schema_uuids)
+      sub_scope = documents_attachments.where(uuid: schema_uuids)
+
+      ActiveStorage::Attachment.where(
+        ActiveStorage::Attachment.arel_table[:id].in(
+          tpl_scope.select(:id).arel.union(:all, sub_scope.select(:id).arel)
+        )
+      )
     end
   end
 

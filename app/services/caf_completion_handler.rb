@@ -14,7 +14,9 @@ class CafCompletionHandler
   def call
     ActiveRecord::Base.transaction do
       stage1 = internal_stage
-      return { success: false, error: 'Internal stage not found or not complete' } unless stage1&.all_submitters_complete?
+      unless stage1&.all_submitters_complete?
+        return { success: false, error: 'Internal stage not found or not complete' }
+      end
 
       # ── 1. Mark Stage 1 complete (uses built-in complete! which strips + advances) ──
       stage1.complete!
@@ -32,6 +34,9 @@ class CafCompletionHandler
         populate_counterparty_submitters(stage2)
       end
 
+      # ── 3. Record stage-transition audit event ───────────────────────────────
+      record_stage_transition_event
+
       # ── 4. Update workflow status ─────────────────────────────────────────────
       @caf.update!(status: 'sent_counterparty')
 
@@ -40,7 +45,9 @@ class CafCompletionHandler
 
     { success: true }
   rescue StandardError => e
-    Rails.logger.error("[CafCompletionHandler] failed for CAF #{@caf.id}: #{e.message}\n#{e.backtrace.first(5).join("\n")}")
+    Rails.logger.error(
+      "[CafCompletionHandler] failed for CAF #{@caf.id}: #{e.message}\n#{e.backtrace.first(5).join("\n")}"
+    )
     { success: false, error: e.message }
   end
 
@@ -54,11 +61,34 @@ class CafCompletionHandler
     @caf.caf_submission&.caf_stages&.ordered_by_position&.second
   end
 
-  # Remove pages flagged as internal_only from the document bundle.
-  # The contract document itself (internal_only: false) is preserved for
-  # the counterparty to sign.
-  # Ensure Stage 2 has a submitter for the counterparty.
-  # The CAF stores counterparty_name + counterparty_email on the workflow.
+  # Creates a SubmissionEvent documenting the Stage 1 → Stage 2 transition,
+  # recording which document UUIDs are visible to the counterparty and which
+  # remain concealed (internal_only: true).
+  def record_stage_transition_event
+    submission = @caf.caf_submission
+    return unless submission
+
+    visible_uuids   = submission.caf_stage_documents.where(internal_only: false).pluck(:document_uuid)
+    concealed_uuids = submission.caf_stage_documents.where(internal_only: true).pluck(:document_uuid)
+
+    SubmissionEvent.create!(
+      submission:      submission,
+      account:         @caf.account,
+      event_type:      'stage_transition_to_counterparty',
+      event_timestamp: Time.current,
+      data: {
+        stage_from:               0,
+        stage_to:                 1,
+        caf_workflow_id:          @caf.id,
+        visible_document_uuids:   visible_uuids,
+        concealed_document_uuids: concealed_uuids
+      }
+    )
+  rescue StandardError => e
+    # Audit event failure must not abort the signing flow.
+    Rails.logger.error("[CafCompletionHandler] Failed to record stage transition event: #{e.message}")
+  end
+
   def populate_counterparty_submitters(stage2)
     submission = @caf.caf_submission
     return if stage2.caf_stage_submitters.exists?

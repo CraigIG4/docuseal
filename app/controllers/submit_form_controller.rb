@@ -26,6 +26,12 @@ class SubmitFormController < ApplicationController
                                 submission.template&.preferences&.dig('submitters_order') == 'preserved') &&
                                !Submitters.current_submitter_order?(@submitter)
 
+    # IGSIGN: For CAF Stage 2 (counterparty) submitters, narrow the in-memory
+    # template_schema to exclude internal-only documents before preloading.
+    # This ensures filtered_conditions_schema and schema_documents both operate
+    # on the restricted set without touching the database record.
+    maybe_filter_caf_schema_for_counterparty(@submitter, submission)
+
     Submissions.preload_with_pages(submission)
 
     Submitters::MaybeUpdateDefaultValues.call(@submitter, current_user)
@@ -134,5 +140,30 @@ class SubmitFormController < ApplicationController
   def build_attachments_index(submission)
     ActiveStorage::Attachment.where(record: submission.submitters, name: :attachments)
                              .preload(:blob).index_by(&:uuid)
+  end
+
+  # Mutates submission.template_schema in memory (does NOT persist) to remove
+  # internal-only document entries for counterparty (Stage 2+) submitters.
+  # No-ops for non-CAF submissions and Stage 1 submitters.
+  def maybe_filter_caf_schema_for_counterparty(submitter, submission)
+    stage = CafStage.joins(:caf_stage_submitters)
+                    .find_by(submission: submission,
+                             caf_stage_submitters: { submitter_id: submitter.id })
+
+    return unless stage&.position&.positive?
+
+    internal_uuids = submission.caf_stage_documents
+                               .where(internal_only: true)
+                               .pluck(:document_uuid)
+                               .to_set
+    return if internal_uuids.empty?
+
+    full_schema = submission.template_schema.presence ||
+                  submission.template&.schema ||
+                  []
+
+    submission.template_schema = full_schema.reject do |item|
+      internal_uuids.include?(item['attachment_uuid'])
+    end
   end
 end
