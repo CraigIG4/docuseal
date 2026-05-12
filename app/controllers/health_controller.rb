@@ -6,15 +6,20 @@ class HealthController < ApplicationController
   skip_authorization_check
 
   def show
-    checks = {
-      db:      db_ok?,
-      redis:   redis_ok?,
-      sidekiq: sidekiq_ok?
-    }
+    db      = db_ok?
+    redis   = redis_ok?
+    sidekiq = sidekiq_ok?
 
-    status = checks.values.all? ? :ok : :service_unavailable
+    # Only a DB failure is fatal — Redis/Sidekiq degraded is still a live app.
+    http_status = db ? :ok : :service_unavailable
+    status_label = (db && redis && sidekiq) ? 'ok' : (db ? 'degraded' : 'error')
 
-    render json: checks.transform_values { |v| v ? 'ok' : 'error' }, status:
+    render json: {
+      db:      db      ? 'ok' : 'error',
+      redis:   redis   ? 'ok' : 'error',
+      sidekiq: sidekiq ? 'ok' : 'error',
+      status:  status_label
+    }, status: http_status
   end
 
   private
