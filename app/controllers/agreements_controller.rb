@@ -4,7 +4,7 @@
 class AgreementsController < ApplicationController
   skip_authorization_check
   before_action :authenticate_user!
-  before_action :set_agreement, only: %i[show upload process_upload review send_agreement]
+  before_action :set_agreement, only: %i[show upload process_upload position save_fields review send_agreement]
 
   # ── Index ──────────────────────────────────────────────────────────────────
 
@@ -88,7 +88,7 @@ class AgreementsController < ApplicationController
     begin
       Templates::CreateAttachments.call(template, { files: [file] }, extract_fields: true)
       @agreement.update!(template_id: template.id)
-      redirect_to review_agreement_path(@agreement)
+      redirect_to position_agreement_path(@agreement)
     rescue StandardError => e
       template.destroy
       Rails.logger.error "[IGSIGN] Upload failed agreement=#{@agreement.id}: #{e.message}"
@@ -97,6 +97,51 @@ class AgreementsController < ApplicationController
     end
   end
   # rubocop:enable Metrics/MethodLength
+
+  # ── Step 2b — Position Fields ─────────────────────────────────────────────
+
+  # rubocop:disable Metrics/MethodLength
+  def position
+    unless @agreement.template
+      return redirect_to upload_agreement_path(@agreement),
+                         alert: 'Upload a document first.'
+    end
+
+    sync_template_submitters!
+    auto_place_fields! if @agreement.template.fields.blank?
+
+    template = @agreement.template
+    ActiveRecord::Associations::Preloader.new(
+      records: [template],
+      associations: [{ schema_documents: [:blob, { preview_images_attachments: :blob }] }]
+    ).call
+
+    @template_data =
+      template.as_json.merge(
+        documents: template.schema_documents.as_json(
+          methods: %i[metadata signed_key],
+          include: { preview_images: { methods: %i[url metadata filename] } }
+        )
+      ).to_json
+
+    render layout: 'plain'
+  end
+  # rubocop:enable Metrics/MethodLength
+
+  def save_fields
+    unless @agreement.template
+      return redirect_to upload_agreement_path(@agreement),
+                         alert: 'Upload a document first.'
+    end
+
+    errors = field_coverage_errors(@agreement.template)
+    if errors.any?
+      return redirect_to position_agreement_path(@agreement),
+                         alert: "Place at least one signature field for: #{errors.join(', ')}"
+    end
+
+    redirect_to review_agreement_path(@agreement)
+  end
 
   # ── Step 3 — Review ────────────────────────────────────────────────────────
 
@@ -180,6 +225,80 @@ class AgreementsController < ApplicationController
     )
     co.save
     agreement.company = co
+  end
+
+  # Copies the IGSIGN CAF Template's submitter UUIDs to the agreement template
+  # so that user-placed fields reference UUIDs the submission will later bind
+  # Submitter records to.  Without this, the agreement fields appear on the
+  # correct pages but are unassigned (no submitter owns them).
+  def sync_template_submitters!
+    caf_tpl = @agreement.account.templates.find_by(name: 'IGSIGN CAF Template')
+    return unless caf_tpl
+
+    caf_subs_by_role = (caf_tpl.submitters || []).index_by { |s| s['name'] }
+
+    subs = (@agreement.signatories || []).filter_map do |sig|
+      matched = caf_subs_by_role[sig['role']]
+      next unless matched
+
+      { 'name' => sig['role'], 'uuid' => matched['uuid'] }
+    end
+
+    cp_sub = caf_subs_by_role['Counterparty']
+    subs << { 'name' => 'Counterparty', 'uuid' => cp_sub['uuid'] } if cp_sub
+
+    @agreement.template.update!(submitters: subs) if subs != @agreement.template.submitters
+  end
+
+  # Populates the agreement template with auto-placed signature / name / date
+  # blocks for each signatory party — one row per party stacked vertically.
+  # Only runs when the template has no fields yet, so manual edits are preserved.
+  def auto_place_fields!
+    template = @agreement.template
+    att_uuid = template.schema_documents.first&.uuid
+    return unless att_uuid
+
+    subs   = template.submitters || []
+    fields = subs.each_with_index.flat_map do |sub, idx|
+      build_auto_fields(sub['uuid'], sub['name'], att_uuid, idx)
+    end
+
+    template.update!(fields: fields) if fields.any?
+  end
+
+  # Builds three auto-placed fields (signature, full-name, date) for one party.
+  # Parties are stacked vertically starting at y=0.72 with a 0.07 step.
+  # Signature block occupies left third, name centre, date right.
+  def build_auto_fields(sub_uuid, sub_name, att_uuid, idx)
+    y = 0.72 + (idx * 0.07)
+    [
+      { 'uuid' => SecureRandom.uuid, 'submitter_uuid' => sub_uuid,
+        'name' => "#{sub_name} Signature", 'type' => 'signature', 'required' => true,
+        'preferences' => {},
+        'areas' => [{ 'x' => 0.05, 'y' => y, 'w' => 0.25, 'h' => 0.05,
+                      'page' => 0, 'attachment_uuid' => att_uuid }] },
+      { 'uuid' => SecureRandom.uuid, 'submitter_uuid' => sub_uuid,
+        'name' => "#{sub_name} Full Name", 'type' => 'text', 'required' => true,
+        'preferences' => {},
+        'areas' => [{ 'x' => 0.35, 'y' => y, 'w' => 0.30, 'h' => 0.05,
+                      'page' => 0, 'attachment_uuid' => att_uuid }] },
+      { 'uuid' => SecureRandom.uuid, 'submitter_uuid' => sub_uuid,
+        'name' => "#{sub_name} Date", 'type' => 'date', 'required' => true,
+        'preferences' => { 'format' => 'DD/MM/YYYY' },
+        'areas' => [{ 'x' => 0.70, 'y' => y, 'w' => 0.25, 'h' => 0.05,
+                      'page' => 0, 'attachment_uuid' => att_uuid }] }
+    ]
+  end
+
+  # Returns the names of any submitter parties that lack at least one
+  # signature-type field in the template.  Used to gate the Continue button.
+  def field_coverage_errors(template)
+    subs   = template.submitters || []
+    fields = template.fields || []
+    signed_uuids = fields.select { |f| f['type'] == 'signature' }
+                         .map { |f| f['submitter_uuid'] }.to_set
+
+    subs.filter_map { |sub| sub['name'] unless signed_uuids.include?(sub['uuid']) }
   end
 
   # Fills blank counterparty fields on the agreement from the associated

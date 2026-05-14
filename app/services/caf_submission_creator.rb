@@ -37,6 +37,7 @@ class CafSubmissionCreator
     attach_stages(submission)
     attach_caf_pdf_document(submission)
     attach_contract_document(submission)
+    merge_agreement_template_fields!(submission)
     extend_submission_schema(submission)
 
     submission.caf_stages.ordered_by_position.first&.activate!
@@ -130,10 +131,15 @@ class CafSubmissionCreator
 
   # Attaches the uploaded agreement to the submission and registers it as an
   # externally-visible document (internal_only: false).
+  #
+  # The document lives on @caf.template (created by AgreementsController#process_upload
+  # via Templates::CreateAttachments), not on @caf.contract_document.
   def attach_contract_document(submission)
-    return unless @caf.contract_document.attached?
+    template   = @caf.template
+    src_attach = template&.documents&.attachments&.first
+    return unless src_attach
 
-    blob = @caf.contract_document.blob
+    blob = src_attach.blob
     submission.documents.attach(blob)
     attachment = ActiveStorage::Attachment.find_by!(
       record_type: 'Submission', record_id: submission.id,
@@ -146,6 +152,38 @@ class CafSubmissionCreator
       document_name: blob.filename.to_s,
       internal_only: false
     )
+  end
+
+  # Merges user-positioned fields from the agreement template into the
+  # submission so the signing form renders them alongside the CAF fields.
+  #
+  # Because the agreement blob is re-attached at the submission level (new
+  # ActiveStorage::Attachment record, different UUID), every area reference
+  # must be remapped from the template attachment UUID to the submission
+  # attachment UUID before merging.
+  def merge_agreement_template_fields!(submission)
+    template   = @caf.template
+    src_attach = template&.documents&.attachments&.first
+    return unless src_attach && template.fields.present?
+
+    sub_attach = ActiveStorage::Attachment.find_by(
+      record_type: 'Submission', record_id: submission.id,
+      name: 'documents', blob_id: src_attach.blob_id
+    )
+    return unless sub_attach
+
+    tpl_att_uuid = src_attach.uuid
+    sub_att_uuid = sub_attach.uuid
+
+    remapped = template.fields.map do |field|
+      remapped_areas = (field['areas'] || []).map do |area|
+        area['attachment_uuid'] == tpl_att_uuid ? area.merge('attachment_uuid' => sub_att_uuid) : area
+      end
+      field.merge('areas' => remapped_areas)
+    end
+
+    base_fields = submission.template&.fields || []
+    submission.update!(template_fields: base_fields + remapped)
   end
 
   # Snapshots the submission's document schema so the signing form can resolve

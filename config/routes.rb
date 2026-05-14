@@ -76,6 +76,8 @@ Rails.application.routes.draw do
     member do
       get  :upload
       post :upload, action: :process_upload
+      get  :position
+      post :position, action: :save_fields
       get  :review
       post :send_agreement
     end

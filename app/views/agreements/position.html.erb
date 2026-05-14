@@ -1,0 +1,77 @@
+<%# Step 2b: Place Signature Fields
+#
+# Renders DocuSeal's template-builder component in a full-screen plain layout
+# so the user can position signature / name / date fields on the uploaded
+# agreement before sending for internal approval.
+#
+# Auto-placed defaults are populated by AgreementsController#position when
+# the template has no fields yet.  The builder auto-saves field changes to
+# PATCH /api/templates/:id; the "Continue to Review" button only validates
+# coverage and redirects — it does not re-save.
+%>
+
+<div class="flex flex-col" style="height:100vh;">
+
+  <%# ── Fixed header ───────────────────────────────────────────────────────── %>
+  <div class="flex items-center justify-between px-5 py-3 border-b border-gray-200 bg-white shrink-0 gap-4">
+
+    <%# Left: back link + step label %>
+    <div class="flex items-center gap-3 min-w-0">
+      <%= link_to upload_agreement_path(@agreement),
+                  class: 'text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 shrink-0' do %>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Back
+      <% end %>
+      <div class="h-5 w-px bg-gray-200 shrink-0"></div>
+      <p class="text-sm font-semibold text-gray-900 truncate">
+        Step 2b — Place Signature Fields
+        <span class="font-normal text-gray-400 ml-1 truncate"><%= @agreement.contracting_party.presence %></span>
+      </p>
+    </div>
+
+    <%# Centre: party colour chips %>
+    <div class="flex items-center gap-2 flex-wrap justify-center flex-1 min-w-0">
+      <% colors = %w[#1a2332 #2e6b4f #7c3aed #b45309 #0e7490] %>
+      <% (@agreement.template&.submitters || []).each_with_index do |sub, idx| %>
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium text-white shrink-0"
+              style="background-color: <%= colors[idx % colors.length] %>;">
+          <span class="w-1.5 h-1.5 rounded-full bg-white" style="opacity:0.65;"></span>
+          <%= sub['name'] %>
+        </span>
+      <% end %>
+    </div>
+
+    <%# Right: continue button — posts to save_fields for coverage validation %>
+    <%= form_with url: position_agreement_path(@agreement), method: :post, class: 'shrink-0' do |f| %>
+      <%= f.submit 'Continue to Review →',
+                   class: 'px-5 py-2 rounded-lg text-sm font-semibold text-white cursor-pointer transition-opacity hover:opacity-90',
+                   style: 'background-color:#45AC34;' %>
+    <% end %>
+  </div>
+
+  <%# ── Flash (validation errors from save_fields) ──────────────────────────── %>
+  <% if flash[:alert].present? %>
+    <div class="shrink-0 flex items-center gap-2 px-5 py-2.5 bg-red-50 border-b border-red-200 text-sm text-red-700">
+      <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+      </svg>
+      <%= flash[:alert] %>
+    </div>
+  <% end %>
+
+  <%# ── template-builder fills remaining height ──────────────────────────────── %>
+  <div class="flex-1 min-h-0 overflow-hidden">
+    <template-builder class="grid"
+      style="height:100%;"
+      data-template="<%= @template_data %>"
+      data-with-sign-yourself-button="false"
+      data-with-send-button="false"
+      data-with-fields-detection="<%= !Docuseal.multitenant? %>"
+      data-locale="<%= I18n.locale %>"
+    ></template-builder>
+  </div>
+
+</div>
