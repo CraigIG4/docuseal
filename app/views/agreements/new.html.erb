@@ -46,22 +46,9 @@
           <span id="ep_ok" style="font-size:11px;color:#16a34a;display:none;">Copied &#10003;</span>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
-        <div>
-          <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Counterparty Contact Name</label>
-          <%= f.text_field :counterparty_name, id: 'ag_ct_name', autocomplete: 'off', style: 'width:100%;border-radius:8px;border:1px solid #d1d5db;padding:9px 12px;font-size:14px;box-sizing:border-box;', placeholder: 'John Smith' %>
-        </div>
-        <div>
-          <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Counterparty Contact Email</label>
-          <%= f.email_field :counterparty_email, id: 'ag_ct_email', autocomplete: 'email', style: 'width:100%;border-radius:8px;border:1px solid #d1d5db;padding:9px 12px;font-size:14px;box-sizing:border-box;', placeholder: 'john@company.co.za' %>
-        </div>
-      </div>
-      <div>
-        <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Mandate &amp; Purpose</label>
-        <%= f.text_area :mandate_description, rows:3, style:'width:100%;border-radius:8px;border:1px solid #d1d5db;padding:9px 12px;font-size:14px;resize:none;box-sizing:border-box;', placeholder:'Briefly describe what this agreement covers and why it is needed.' %>
-      </div>
-      <%= f.hidden_field :requestor_name,  value: @agreement.requestor_name %>
-      <%= f.hidden_field :requestor_email, value: @agreement.requestor_email %>
+
+      <%# Counterparty Company selector — sits above the name/email fields so
+          the recent-signers panel can auto-fill them on click. %>
       <div style="border-radius:10px;border:1px solid #e5e7eb;background:#f9fafb;padding:1rem;">
         <p style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px;">Counterparty Company</p>
         <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:flex-start;">
@@ -91,7 +78,30 @@
           </div>
           <p style="margin-top:6px;font-size:11px;color:#9ca3af;">Saved to your counterparty directory.</p>
         </div>
+
+        <%# Recent signers panel — populated via AJAX when a company is selected %>
+        <div id="rs_panel" style="display:none;margin-top:12px;border-top:1px solid #e5e7eb;padding-top:12px;">
+          <p id="rs_heading" style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;"></p>
+          <div id="rs_list" style="display:flex;flex-direction:column;gap:6px;"></div>
+        </div>
       </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div>
+          <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Counterparty Contact Name</label>
+          <%= f.text_field :counterparty_name, id: 'ag_ct_name', autocomplete: 'off', style: 'width:100%;border-radius:8px;border:1px solid #d1d5db;padding:9px 12px;font-size:14px;box-sizing:border-box;', placeholder: 'John Smith' %>
+        </div>
+        <div>
+          <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Counterparty Contact Email</label>
+          <%= f.email_field :counterparty_email, id: 'ag_ct_email', autocomplete: 'email', style: 'width:100%;border-radius:8px;border:1px solid #d1d5db;padding:9px 12px;font-size:14px;box-sizing:border-box;', placeholder: 'john@company.co.za' %>
+        </div>
+      </div>
+      <div>
+        <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Mandate &amp; Purpose</label>
+        <%= f.text_area :mandate_description, rows:3, style:'width:100%;border-radius:8px;border:1px solid #d1d5db;padding:9px 12px;font-size:14px;resize:none;box-sizing:border-box;', placeholder:'Briefly describe what this agreement covers and why it is needed.' %>
+      </div>
+      <%= f.hidden_field :requestor_name,  value: @agreement.requestor_name %>
+      <%= f.hidden_field :requestor_email, value: @agreement.requestor_email %>
     </div>
     <div style="margin-top:2rem;display:flex;align-items:center;justify-content:space-between;padding-top:1.5rem;border-top:1px solid #e5e7eb;">
       <%= link_to agreements_path, style: 'font-size:14px;color:#6b7280;text-decoration:none;' do %>&larr; Cancel<% end %>
@@ -106,6 +116,7 @@
   <% IgSignatories::ENTITIES.each do |key, _| %><% %w[nda short_form long_form].each do |ct| %>C['<%= key %>_<%= ct %>']=<%= raw IgSignatories.chain_for(ct, key)[:stage1].to_json %>;<% end %><% end %>
   var M={nda:'nda',msa:'long_form',sla:'long_form',vendor:'long_form',other:'long_form',addendum:'short_form',employment:'short_form',policy:'nda'};
   var SEARCH='<%= search_companies_agreements_path(format: :json) %>';
+  var SIGNATORIES_URL='<%= recent_signatories_agreements_path(format: :json) %>';
   var typeSel=document.getElementById('ag_type'),entSel=document.getElementById('ag_entity'),panel=document.getElementById('entity_panel');
   function updatePanel(){
     var ek=entSel&&entSel.value;if(!ek){panel.style.display='none';return;}
@@ -122,16 +133,108 @@
   }
   entSel&&entSel.addEventListener('change',updatePanel);
   typeSel&&typeSel.addEventListener('change',updatePanel);
+
+  /* ── Company search ─────────────────────────────────────────────────────── */
   var si=document.getElementById('co_search'),rb=document.getElementById('co_results'),sb=document.getElementById('co_sel'),ci=document.getElementById('co_id'),cn=document.getElementById('ag_ct_name'),ce=document.getElementById('ag_ct_email');
   var dbt;
   si&&si.addEventListener('input',function(){clearTimeout(dbt);dbt=setTimeout(function(){var q=si.value.trim();if(q.length<1){rb.style.display='none';return;}fetch(SEARCH+'?q='+encodeURIComponent(q),{headers:{Accept:'application/json'}}).then(function(r){return r.json();}).then(function(cs){rb.innerHTML='';if(!cs.length){rb.innerHTML='<p style="font-size:12px;color:#9ca3af;padding:8px 12px;">No matches - add below</p>';}else{cs.forEach(function(c){var b=document.createElement('button');b.type='button';b.style.cssText='width:100%;text-align:left;padding:8px 12px;font-size:13px;background:none;border:none;border-bottom:1px solid #f3f4f6;cursor:pointer;';b.onmouseover=function(){this.style.background='#eff6ff';};b.onmouseout=function(){this.style.background='none';};b.innerHTML='<strong style="color:#111827;">'+c.name+'</strong>'+(c.domain?' <span style="font-size:11px;color:#9ca3af;">'+c.domain+'</span>':'')+(c.contact_name?'<br><span style="font-size:11px;color:#6b7280;">'+c.contact_name+'</span>':'');b.addEventListener('click',function(){selC(c);});rb.appendChild(b);});}rb.style.display='block';});},250);});
-  function selC(c){ci.value=c.id;document.getElementById('co_sel_name').textContent=c.name;document.getElementById('co_sel_domain').textContent=c.domain||'';sb.style.display='block';rb.style.display='none';si.value='';if(cn&&!cn.value&&c.contact_name)cn.value=c.contact_name;if(ce&&!ce.value&&c.contact_email)ce.value=c.contact_email;}
-  var clr=document.getElementById('co_clear');clr&&clr.addEventListener('click',function(){ci.value='';sb.style.display='none';});
+
+  function selC(c){
+    ci.value=c.id;
+    document.getElementById('co_sel_name').textContent=c.name;
+    document.getElementById('co_sel_domain').textContent=c.domain||'';
+    sb.style.display='block';
+    rb.style.display='none';
+    si.value='';
+    if(cn&&!cn.value&&c.contact_name)cn.value=c.contact_name;
+    if(ce&&!ce.value&&c.contact_email)ce.value=c.contact_email;
+    fetchRecentSignatories(c.id,c.name);
+  }
+
+  /* ── Recent signatories panel ───────────────────────────────────────────── */
+  var rsPanel=document.getElementById('rs_panel'),rsList=document.getElementById('rs_list'),rsHeading=document.getElementById('rs_heading');
+  var rsSelectedId=null;
+
+  function fetchRecentSignatories(companyId,companyName){
+    if(!rsPanel)return;
+    rsList.innerHTML='<p style="font-size:12px;color:#9ca3af;padding:4px 0;">Loading…</p>';
+    rsPanel.style.display='block';
+    fetch(SIGNATORIES_URL+'?company_id='+companyId,{headers:{Accept:'application/json'}})
+      .then(function(r){return r.json();})
+      .then(function(data){
+        var sigs=data.signatories||[];
+        if(!sigs.length){rsPanel.style.display='none';return;}
+        rsHeading.textContent='Recent signers at '+companyName;
+        rsList.innerHTML='';
+        sigs.forEach(function(sig){
+          var card=document.createElement('button');
+          card.type='button';
+          card.dataset.sigId=sig.id;
+          card.dataset.name=sig.name;
+          card.dataset.email=sig.email;
+          card.style.cssText='width:100%;text-align:left;border-radius:8px;border:1px solid #e5e7eb;background:white;padding:8px 12px;cursor:pointer;transition:all 0.1s;display:flex;align-items:center;justify-content:space-between;gap:8px;';
+          var timesLabel=sig.times_signed===1?'Signed once':'Signed '+sig.times_signed+'×';
+          var roleTag=sig.role_title?'<span style="font-size:10px;font-weight:500;padding:1px 6px;background:#f3f4f6;border-radius:4px;color:#6b7280;">'+escHtml(sig.role_title)+'</span> ':'';
+          card.innerHTML=
+            '<div style="flex:1;min-width:0;">'+
+              '<p style="font-size:13px;font-weight:600;color:#111827;margin:0;">'+escHtml(sig.name)+'</p>'+
+              '<p style="font-size:11px;color:#6b7280;margin:1px 0 0;">'+escHtml(sig.email)+'</p>'+
+            '</div>'+
+            '<div style="text-align:right;flex-shrink:0;">'+
+              roleTag+
+              '<p style="font-size:10px;color:#9ca3af;margin:0;white-space:nowrap;">'+escHtml(timesLabel)+'</p>'+
+              '<p style="font-size:10px;color:#9ca3af;margin:0;white-space:nowrap;">'+escHtml(sig.last_seen_label)+'</p>'+
+            '</div>';
+          card.addEventListener('click',function(){selectSignatory(sig,card);});
+          card.addEventListener('mouseover',function(){if(rsSelectedId!==sig.id)card.style.borderColor='#93c5fd';});
+          card.addEventListener('mouseout',function(){if(rsSelectedId!==sig.id)card.style.borderColor='#e5e7eb';});
+          rsList.appendChild(card);
+        });
+        /* Auto-select smart default */
+        if(data.smart_default_id){
+          var def=rsList.querySelector('[data-sig-id="'+data.smart_default_id+'"]');
+          if(def){
+            var ds=sigs.find(function(s){return s.id===data.smart_default_id;});
+            if(ds)selectSignatory(ds,def,true);
+          }
+        }
+      })
+      .catch(function(){rsPanel.style.display='none';});
+  }
+
+  function selectSignatory(sig,cardEl,isAuto){
+    /* Deselect previous */
+    rsList.querySelectorAll('button').forEach(function(b){
+      b.style.borderColor='#e5e7eb';
+      b.style.background='white';
+    });
+    /* Highlight selected */
+    if(cardEl){
+      cardEl.style.borderColor='#162B3C';
+      cardEl.style.background='#f0f4f8';
+    }
+    rsSelectedId=sig.id;
+    /* Fill counterparty fields (only if empty, or this is an explicit click) */
+    if(cn&&(!cn.value||!isAuto))cn.value=sig.name;
+    if(ce&&(!ce.value||!isAuto))ce.value=sig.email;
+  }
+
+  var clr=document.getElementById('co_clear');
+  clr&&clr.addEventListener('click',function(){
+    ci.value='';
+    sb.style.display='none';
+    rsPanel.style.display='none';
+    rsSelectedId=null;
+  });
   var nb=document.getElementById('co_new_btn'),nf=document.getElementById('co_new_form');
   nb&&nb.addEventListener('click',function(){var h=nf.style.display!=='block';nf.style.display=h?'block':'none';nb.textContent=h?'- Hide form':'+ Add new company';});
   var ncn=document.getElementById('nc_name'),nce=document.getElementById('nc_email');
   ncn&&ncn.addEventListener('input',function(){if(cn&&!cn.value)cn.value=ncn.value;});
   nce&&nce.addEventListener('input',function(){if(ce&&!ce.value)ce.value=nce.value;});
   document.addEventListener('click',function(e){if(rb&&si&&!si.contains(e.target)&&!rb.contains(e.target))rb.style.display='none';});
+
+  function escHtml(s){
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
 })();
 </script>

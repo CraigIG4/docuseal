@@ -71,6 +71,7 @@ Rails.application.routes.draw do
   resources :dashboard, only: %i[index]
 
   resources :companies, only: %i[index new create show edit update]
+  resources :company_signatories, only: %i[update]
 
   resources :agreements, only: %i[index new create show] do
     member do
@@ -83,6 +84,7 @@ Rails.application.routes.draw do
     end
     collection do
       get :search_companies
+      get :recent_signatories
     end
   end
 

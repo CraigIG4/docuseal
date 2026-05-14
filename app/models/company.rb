@@ -30,6 +30,7 @@
 class Company < ApplicationRecord
   belongs_to :account
   has_many :caf_workflows, dependent: :nullify
+  has_many :company_signatories, dependent: :destroy
 
   validates :name, presence: true
   validates :primary_contact_email,
@@ -51,5 +52,38 @@ class Company < ApplicationRecord
 
   def sync_agreements_count!
     update_column(:agreements_count, caf_workflows.count)
+  end
+
+  # ── Signatory memory ──────────────────────────────────────────────────────
+
+  # Find or create a CompanySignatory record for the given email.
+  # Increments times_signed and updates last_seen_at each time.
+  # Safe to call multiple times for the same person.
+  def record_signatory!(name, email, workflow_id: nil)
+    return unless email.present?
+
+    sig = company_signatories.find_or_initialize_by(email: email.strip.downcase)
+    sig.name          = name.presence || sig.name || email
+    sig.times_signed  = sig.times_signed.to_i + 1
+    sig.last_seen_at  = Time.current
+    sig.first_seen_at ||= Time.current
+    sig.last_workflow_id = workflow_id if workflow_id
+    sig.active = true
+    sig.save!
+    sig
+  end
+
+  # Active signatories ordered by recency then frequency.
+  def recent_signatories(limit: 5)
+    company_signatories.active.recent_first.limit(limit)
+  end
+
+  # Returns the single signatory if they appear in all three most-recent
+  # workflows for this company.  Nil if there are multiple or none.
+  def smart_default_signatory
+    recent = company_signatories.active.recent_first.limit(3).to_a
+    return recent.first if recent.one?
+
+    nil
   end
 end

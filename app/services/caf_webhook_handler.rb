@@ -25,7 +25,8 @@ class CafWebhookHandler
       # Internal IG stage complete → strip CAF, send to counterparty
       CafCompletionHandler.new(caf).call
     when 1
-      # Counterparty stage complete → send audit bundle
+      # Counterparty stage complete → record signatory memory, then send audit bundle
+      record_counterparty_signatories!(caf, active_stage)
       CafAuditBundleSender.new(caf).call
     else
       Rails.logger.warn("[CafWebhookHandler] Unknown stage position #{active_stage.position} for CAF #{caf.id}")
@@ -41,5 +42,26 @@ class CafWebhookHandler
   def active_stage_for(caf)
     caf_stages = caf.caf_submission&.caf_stages
     caf_stages&.where(status: 'active')&.ordered_by_position&.first
+  end
+
+  # Records each completed counterparty submitter against the company
+  # so future workflows can pre-populate the counterparty fields.
+  # Failure is swallowed — signatory recording must never block the audit bundle.
+  def record_counterparty_signatories!(caf, stage)
+    return unless caf.company_id
+
+    stage.submitters.each do |submitter|
+      next if submitter.email.blank?
+
+      caf.company.record_signatory!(
+        submitter.name,
+        submitter.email,
+        workflow_id: caf.id
+      )
+    end
+  rescue StandardError => e
+    Rails.logger.error(
+      "[CafWebhookHandler] Signatory recording failed for CAF #{caf.id}: #{e.message}"
+    )
   end
 end

@@ -13,7 +13,8 @@ class CompaniesController < ApplicationController
   end
 
   def show
-    @agreements = @company.caf_workflows.recent.limit(10)
+    @agreements  = @company.caf_workflows.recent.limit(10)
+    @signatories = @company.company_signatories.recent_first
   end
 
   def new

@@ -149,6 +149,12 @@ class AgreementsController < ApplicationController
     @step = 3
     @signatories = @agreement.signatories || []
     @template_doc = @agreement.template
+
+    # Load memorised signatory for authority badge.
+    if @agreement.company && @agreement.counterparty_email.present?
+      @counterparty_signatory = @agreement.company.company_signatories
+                                          .find_by(email: @agreement.counterparty_email.strip.downcase)
+    end
   end
 
   # ── Send ───────────────────────────────────────────────────────────────────
@@ -170,6 +176,30 @@ class AgreementsController < ApplicationController
       redirect_to review_agreement_path(@agreement),
                   alert: "Could not send: #{result[:error]}"
     end
+  end
+
+  # ── Recent signatories AJAX ────────────────────────────────────────────────
+
+  def recent_signatories
+    company = current_account.companies.find_by(id: params[:company_id])
+    return render json: { signatories: [], smart_default_id: nil } unless company
+
+    sigs = company.recent_signatories(limit: 5).map do |sig|
+      {
+        id:              sig.id,
+        name:            sig.name,
+        email:           sig.email,
+        role_title:      sig.role_title.presence || '',
+        authority_basis: sig.authority_basis.presence || '',
+        times_signed:    sig.times_signed,
+        last_seen_label: sig.last_seen_label
+      }
+    end
+
+    render json: {
+      signatories:      sigs,
+      smart_default_id: company.smart_default_signatory&.id
+    }
   end
 
   # ── AJAX company search ────────────────────────────────────────────────────
