@@ -67,13 +67,21 @@ class CafSubmissionCreator
   end
 
   def attach_signatories(submission)
+    # Map template submitter UUIDs by role name so each Submitter record
+    # gets the UUID the template fields are already bound to.  Without this,
+    # fields appear in the signing form but are owned by a UUID that matches
+    # no actual submitter, rendering them as unassigned blanks.
+    tpl_sub_by_role = (submission.template&.submitters || []).index_by { |s| s['name'] }
+
     @caf.signatories.each_with_index do |sig, idx|
+      uuid = tpl_sub_by_role.dig(sig['role'], 'uuid') || SecureRandom.uuid
+
       submission.submitters.create!(
-        account: @caf.account,
-        name: sig['name'],
-        email: sig['email'],
-        uuid: SecureRandom.uuid,
-        slug: SecureRandom.base58(14),
+        account:  @caf.account,
+        name:     sig['name'],
+        email:    sig['email'],
+        uuid:     uuid,
+        slug:     SecureRandom.base58(14),
         metadata: { 'caf_role' => sig['role'], 'caf_position' => idx }
       )
     end
