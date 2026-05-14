@@ -1,0 +1,92 @@
+<!-- Shared CSS — included inline in each CAF template -->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{background:white;}
+body{font-family:'DM Sans',Arial,Helvetica,sans-serif;font-size:9pt;color:#1a1a1a;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.page{width:210mm;min-height:297mm;padding:22mm 22mm 18mm 22mm;position:relative;}
+
+/* ── Letterhead ─────────────────────────────────────────────────── */
+.lh{width:100%;border-collapse:collapse;border-bottom:3pt solid #162B3C;padding-bottom:9pt;margin-bottom:10pt;}
+.lh td{padding-bottom:8pt;vertical-align:middle;}
+.lh-right{text-align:right;vertical-align:top;}
+.logo-badge{display:inline-block;background:#162B3C;color:white;font-size:13pt;font-weight:700;letter-spacing:2pt;padding:5pt 14pt 4pt;border-radius:3pt;}
+.entity-name{font-size:10.5pt;font-weight:600;color:#162B3C;margin-top:5pt;line-height:1.3;}
+.entity-meta{font-size:7.5pt;color:#6b7280;line-height:1.55;margin-top:2pt;white-space:pre-line;}
+.form-title{font-size:12.5pt;font-weight:700;color:#162B3C;letter-spacing:0.5pt;line-height:1.2;}
+.form-sub{font-size:9pt;color:#6b7280;margin-top:3pt;}
+.type-badge{display:inline-block;color:white;font-size:7.5pt;font-weight:700;padding:2pt 10pt;border-radius:20pt;margin-top:5pt;letter-spacing:0.3pt;}
+.wf-ref{font-size:7.5pt;color:#6b7280;margin-top:5pt;}
+.wf-date{font-size:8pt;color:#374151;font-weight:500;}
+
+/* ── Section headers ─────────────────────────────────────────────── */
+.sh{background:#162B3C;color:white;font-size:8pt;font-weight:700;padding:5pt 9pt;margin-top:9pt;letter-spacing:0.6pt;text-transform:uppercase;}
+.sh-green{background:#45AC34;color:white;font-size:8pt;font-weight:700;padding:5pt 9pt;margin-top:9pt;letter-spacing:0.6pt;text-transform:uppercase;}
+.sh-amber{background:#d97706;color:white;font-size:8pt;font-weight:700;padding:5pt 9pt;margin-top:9pt;letter-spacing:0.6pt;text-transform:uppercase;}
+
+/* ── Info grid ───────────────────────────────────────────────────── */
+.ig{width:100%;border-collapse:collapse;border:1pt solid #cbd5e1;border-radius:3pt;overflow:hidden;}
+.ig td{border-right:1pt solid #e2e8f0;border-bottom:1pt solid #e2e8f0;padding:0;vertical-align:top;}
+.ig td.last-col{border-right:none;}
+.ig td.full-col{border-right:none;}
+.ig tr:last-child td{border-bottom:none;}
+.il{font-size:7pt;font-weight:700;color:#162B3C;text-transform:uppercase;letter-spacing:0.5pt;padding:4pt 8pt 1pt;}
+.iv{font-size:9pt;padding:2pt 8pt 5pt;color:#1a1a1a;line-height:1.4;}
+.iv.pre{white-space:pre-line;}
+
+/* ── Text blocks ─────────────────────────────────────────────────── */
+.tb{border:1pt solid #cbd5e1;padding:7pt 9pt;min-height:38pt;font-size:9pt;line-height:1.6;white-space:pre-line;color:#1a1a1a;background:white;}
+.tb-risk{border:1pt solid #fbbf24;background:#fffbeb;padding:7pt 9pt;min-height:32pt;font-size:9pt;line-height:1.6;white-space:pre-line;color:#92400e;}
+.tb-empty{border:1pt dashed #d1d5db;padding:7pt 9pt;min-height:28pt;font-size:8.5pt;line-height:1.4;color:#9ca3af;font-style:italic;}
+
+/* ── Summary grid (purpose / value / term / payment) ───────────── */
+.sg{width:100%;border-collapse:collapse;border:1pt solid #cbd5e1;}
+.sg td{border-right:1pt solid #e2e8f0;border-bottom:1pt solid #e2e8f0;padding:0;vertical-align:top;}
+.sg td.last-col{border-right:none;}
+.sg tr:last-child td{border-bottom:none;}
+
+/* ── Documents list ─────────────────────────────────────────────── */
+.doc-tbl{width:100%;border-collapse:collapse;border:1pt solid #cbd5e1;}
+.doc-tbl th{background:#f8fafc;color:#162B3C;font-size:7.5pt;font-weight:700;padding:4pt 8pt;text-align:left;border-bottom:1pt solid #cbd5e1;border-right:1pt solid #e2e8f0;text-transform:uppercase;letter-spacing:0.3pt;}
+.doc-tbl th:last-child{border-right:none;}
+.doc-tbl td{padding:5pt 8pt;border-bottom:1pt solid #e2e8f0;border-right:1pt solid #e2e8f0;font-size:8.5pt;vertical-align:middle;}
+.doc-tbl td:last-child{border-right:none;}
+.doc-tbl tr:last-child td{border-bottom:none;}
+.badge-int{display:inline-block;background:#fef3c7;color:#92400e;font-size:7pt;font-weight:600;padding:1pt 7pt;border-radius:10pt;}
+.badge-ext{display:inline-block;background:#d1fae5;color:#065f46;font-size:7pt;font-weight:600;padding:1pt 7pt;border-radius:10pt;}
+
+/* ── Data tables ─────────────────────────────────────────────────── */
+.dt{width:100%;border-collapse:collapse;font-size:8.5pt;}
+.dt th{background:#f0f4f8;color:#162B3C;font-size:7.5pt;font-weight:700;padding:4pt 7pt;text-align:left;border:1pt solid #c8cbd4;text-transform:uppercase;letter-spacing:0.3pt;}
+.dt th.center{text-align:center;}
+.dt td{padding:4pt 7pt;border:1pt solid #d4d7dd;vertical-align:top;}
+.dt td.lc{font-weight:600;color:#162B3C;font-size:8pt;background:#f7f9fc;}
+.cb{display:inline-block;width:10pt;height:10pt;border:1pt solid #9ca3af;vertical-align:middle;}
+.an{font-size:7.5pt;color:#555;line-height:1.4;}
+
+/* ── Approval / signature table ─────────────────────────────────── */
+.sig-tbl{width:100%;border-collapse:collapse;font-size:8.5pt;}
+.sig-tbl td{border:1pt solid #d4d7dd;padding:6pt 7pt;vertical-align:top;}
+.sig-role{width:32%;background:#f7f9fc;}
+.sig-area{width:43%;}
+.sig-dt{width:25%;}
+.sig-div{font-weight:700;font-size:8.5pt;color:#162B3C;}
+.sig-org{font-size:7.5pt;color:#6b7280;margin-top:1pt;}
+.sig-person{font-weight:600;font-size:8.5pt;margin-top:4pt;}
+.sig-title{font-size:7.5pt;color:#6b7280;margin-top:1pt;}
+.sig-note{font-size:7pt;color:#6b7280;font-style:italic;line-height:1.4;margin-top:5pt;border-top:1pt solid #e5e7eb;padding-top:4pt;}
+.sig-lbl{font-size:6.5pt;color:#9ca3af;text-transform:uppercase;letter-spacing:0.4pt;}
+.sig-line{border-bottom:1pt solid #374151;height:32pt;margin:4pt 0 2pt;}
+.sig-line-sm{border-bottom:1pt solid #374151;height:20pt;margin:4pt 0 2pt;}
+.sig-tbl .hdr-row td{background:#162B3C;color:white;font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.4pt;padding:4pt 7pt;}
+
+/* ── ECTA notice ─────────────────────────────────────────────────── */
+.ecta{background:#eff6ff;border:1pt solid #bfdbfe;border-radius:3pt;padding:7pt 10pt;margin-top:10pt;font-size:7.5pt;color:#1e40af;line-height:1.55;}
+.ecta strong{font-weight:700;}
+
+/* ── Footer ──────────────────────────────────────────────────────── */
+.ftr{border-top:1pt solid #e2e8f0;margin-top:10pt;padding-top:5pt;font-size:7pt;color:#9ca3af;display:flex;justify-content:space-between;align-items:center;}
+.ftr-left{color:#9ca3af;}
+.ftr-right{color:#9ca3af;text-align:right;}
+.confidential{font-size:6.5pt;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:0.5pt;}
+</style>

@@ -4,7 +4,7 @@
 class AgreementsController < ApplicationController
   skip_authorization_check
   before_action :authenticate_user!
-  before_action :set_agreement, only: %i[show upload process_upload position save_fields review send_agreement]
+  before_action :set_agreement, only: %i[show upload process_upload position save_fields review send_agreement caf_preview]
 
   # ── Index ──────────────────────────────────────────────────────────────────
 
@@ -178,6 +178,20 @@ class AgreementsController < ApplicationController
     end
   end
 
+  # ── CAF Preview ───────────────────────────────────────────────────────────
+
+  def caf_preview
+    pdf_path = CafPdfGenerator.new(@agreement).generate
+    send_data File.read(pdf_path), filename: "caf_#{@agreement.id}_preview.pdf",
+                                   type: 'application/pdf', disposition: 'inline'
+  rescue StandardError => e
+    Rails.logger.error "[IGSIGN] CAF preview failed agreement=#{@agreement.id}: #{e.message}"
+    redirect_to review_agreement_path(@agreement),
+                alert: 'Could not generate CAF preview. Check LibreOffice is installed.'
+  ensure
+    File.delete(pdf_path) if pdf_path && File.exist?(pdf_path)
+  end
+
   # ── Recent signatories AJAX ────────────────────────────────────────────────
 
   def recent_signatories
@@ -237,7 +251,9 @@ class AgreementsController < ApplicationController
       :agreement_type, :entity, :ignition_company,
       :contracting_party, :counterparty_name, :counterparty_email,
       :company_id, :requestor_name, :requestor_email,
-      :high_level_summary, :mandate_description
+      :high_level_summary, :mandate_description,
+      :agreement_purpose, :agreement_value, :agreement_term,
+      :payment_terms, :key_risks
     )
   end
 

@@ -100,6 +100,34 @@
         <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Mandate &amp; Purpose</label>
         <%= f.text_area :mandate_description, rows:3, style:'width:100%;border-radius:8px;border:1px solid #d1d5db;padding:9px 12px;font-size:14px;resize:none;box-sizing:border-box;', placeholder:'Briefly describe what this agreement covers and why it is needed.' %>
       </div>
+
+      <%# ── Agreement Summary (CAF fields) ─────────────────────────────────── %>
+      <div style="border-radius:10px;border:1px solid #e5e7eb;background:#f9fafb;padding:1rem;">
+        <p style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px;">Agreement Summary <span style="font-weight:400;text-transform:none;color:#9ca3af;">(populates the CAF — leave blank if unknown)</span></p>
+        <div>
+          <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Business Purpose / Rationale</label>
+          <%= f.text_area :agreement_purpose, rows:2, style:'width:100%;border-radius:8px;border:1px solid #d1d5db;padding:9px 12px;font-size:13px;resize:none;box-sizing:border-box;background:white;', placeholder:'Describe the commercial purpose of this agreement for the CAF (can differ from Mandate above).' %>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-top:0.75rem;">
+          <div>
+            <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Total Value</label>
+            <%= f.text_field :agreement_value, style:'width:100%;border-radius:8px;border:1px solid #d1d5db;padding:9px 12px;font-size:13px;box-sizing:border-box;background:white;', placeholder:'e.g. R 250 000 per annum' %>
+          </div>
+          <div>
+            <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Term / Duration</label>
+            <%= f.text_field :agreement_term, style:'width:100%;border-radius:8px;border:1px solid #d1d5db;padding:9px 12px;font-size:13px;box-sizing:border-box;background:white;', placeholder:'e.g. 2 years from effective date' %>
+          </div>
+          <div>
+            <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Payment Terms</label>
+            <%= f.text_field :payment_terms, style:'width:100%;border-radius:8px;border:1px solid #d1d5db;padding:9px 12px;font-size:13px;box-sizing:border-box;background:white;', placeholder:'e.g. Net 30 days' %>
+          </div>
+        </div>
+        <div style="margin-top:0.75rem;">
+          <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Key Clauses / Risks <span style="font-weight:400;color:#9ca3af;">(optional)</span></label>
+          <%= f.text_area :key_risks, rows:2, style:'width:100%;border-radius:8px;border:1px solid #fbbf24;background:#fffbeb;padding:9px 12px;font-size:13px;resize:none;box-sizing:border-box;color:#92400e;', placeholder:'Flag any unusual indemnities, liability caps, IP ownership clauses, or compliance concerns.' %>
+        </div>
+      </div>
+
       <%= f.hidden_field :requestor_name,  value: @agreement.requestor_name %>
       <%= f.hidden_field :requestor_email, value: @agreement.requestor_email %>
     </div>

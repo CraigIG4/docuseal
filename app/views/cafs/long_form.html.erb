@@ -1,85 +1,355 @@
 <!DOCTYPE html>
-<html><head><meta charset="UTF-8">
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Contract Approval Form &mdash; <%= @caf[:entity_name] %></title>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:Arial,sans-serif;font-size:9pt;color:#1a1a1a;}
-.page{width:210mm;min-height:297mm;padding:14mm;}
-.hdr{display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #162B3C;padding-bottom:8px;margin-bottom:10px;}
-.ht{font-size:14pt;font-weight:bold;color:#162B3C;}.hs{font-size:8pt;color:#555;margin-top:2px;}
-.lb{background:#162B3C;color:white;font-size:12pt;font-weight:bold;padding:5px 12px;border-radius:4px;}
-.badge{display:inline-block;background:#162B3C;color:white;font-size:7.5pt;font-weight:bold;padding:2px 10px;border-radius:20px;margin-bottom:8px;}
-.ig{display:grid;grid-template-columns:1fr 1fr;border:1px solid #c0c0c0;border-radius:4px;overflow:hidden;margin-bottom:8px;}
-.ic{padding:5px 8px;border-right:1px solid #e0e0e0;border-bottom:1px solid #e0e0e0;}
-.ic:nth-child(even){border-right:none;}.ic:nth-last-child(-n+2){border-bottom:none;}
-.il{font-size:7pt;font-weight:bold;color:#162B3C;text-transform:uppercase;}.iv{font-size:9pt;margin-top:2px;}
-.ic.full{grid-column:1/-1;border-right:none;}
-.sh{background:#162B3C;color:white;font-size:8.5pt;font-weight:bold;padding:4px 8px;margin-top:7px;}
-table{width:100%;border-collapse:collapse;font-size:8.5pt;margin-top:0;}
-th{background:#e8edf2;color:#162B3C;font-size:7.5pt;font-weight:bold;padding:4px 7px;text-align:left;border:1px solid #c0c0c0;text-transform:uppercase;}
-td{padding:4px 7px;border:1px solid #d0d0d0;vertical-align:top;}
-.lc{font-weight:bold;color:#162B3C;font-size:8pt;background:#f7f9fc;}
-.an{font-size:7.5pt;color:#444;line-height:1.4;}
-.cb{display:inline-block;width:12px;height:12px;border:1px solid #888;}
-.sn{font-weight:bold;font-size:8.5pt;}.st{font-size:7.5pt;color:#555;}
-.sno{font-size:7pt;color:#444;font-style:italic;line-height:1.35;}
-.sb{height:28px;border-bottom:1px solid #888;}
-.mb{border:1px solid #c0c0c0;padding:8px;min-height:55px;font-size:9pt;line-height:1.5;white-space:pre-line;}
-.ftr{border-top:1px solid #c0c0c0;margin-top:8px;padding-top:4px;font-size:7pt;color:#888;display:flex;justify-content:space-between;}
-</style></head><body><div class="page">
-<div class="hdr"><div><div class="ht">CONTRACT APPROVAL FORM</div><div class="hs">Ignition Group &mdash; Internal Use Only | Confidential</div></div><div class="lb">IGSIGN</div></div>
-<div class="badge">LONG FORM CAF</div>
-<div class="ig">
-  <div class="ic"><div class="il">Contract Type</div><div class="iv"><%= @caf[:agreement_type_label] %></div></div>
-  <div class="ic"><div class="il">Date of Preparation</div><div class="iv"><%= @caf[:date_prepared] %></div></div>
-  <div class="ic"><div class="il">Ignition Company</div><div class="iv"><%= @caf[:entity_name] %></div></div>
-  <div class="ic"><div class="il">Registration Number</div><div class="iv"><%= @caf[:entity_registration] %></div></div>
-  <div class="ic full"><div class="il">Registered Address</div><div class="iv" style="white-space:pre-line"><%= @caf[:entity_address] %></div></div>
-  <div class="ic"><div class="il">Contracting Party (Company)</div><div class="iv"><%= @caf[:counterparty_company].presence || '&mdash;' %></div></div>
-  <div class="ic"><div class="il">Authorised Signatory</div><div class="iv"><%= @caf[:counterparty_contact_name].presence || '&mdash;' %></div></div>
-  <div class="ic full"><div class="il">Counterparty Authorised Signatory Email</div><div class="iv"><%= @caf[:counterparty_email].presence || '&mdash;' %></div></div>
-  <div class="ic"><div class="il">Requestor</div><div class="iv"><%= @caf[:requestor_name] %></div></div>
-  <div class="ic"><div class="il">Requestor Email</div><div class="iv"><%= @caf[:requestor_email] %></div></div>
+html,body{background:white;}
+body{font-family:'DM Sans',Arial,Helvetica,sans-serif;font-size:9pt;color:#1a1a1a;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.page{width:210mm;min-height:297mm;padding:22mm 22mm 18mm 22mm;}
+.lh{width:100%;border-collapse:collapse;border-bottom:3pt solid #162B3C;margin-bottom:11pt;}
+.lh td{padding-bottom:9pt;vertical-align:middle;}
+.logo-badge{display:inline-block;background:#162B3C;color:white;font-size:13pt;font-weight:700;letter-spacing:2pt;padding:5pt 14pt 4pt;border-radius:3pt;}
+.entity-name{font-size:10pt;font-weight:600;color:#162B3C;margin-top:5pt;line-height:1.3;}
+.entity-meta{font-size:7.5pt;color:#6b7280;line-height:1.55;margin-top:2pt;white-space:pre-line;}
+.lh-right{text-align:right;vertical-align:top;}
+.form-title{font-size:13pt;font-weight:700;color:#162B3C;letter-spacing:0.5pt;}
+.form-sub{font-size:9pt;color:#6b7280;margin-top:2pt;}
+.type-badge{display:inline-block;background:#162B3C;color:white;font-size:7.5pt;font-weight:700;padding:2pt 11pt;border-radius:20pt;margin-top:5pt;letter-spacing:0.3pt;}
+.wf-ref{font-size:7.5pt;color:#9ca3af;margin-top:5pt;}
+.wf-date{font-size:8.5pt;color:#374151;font-weight:600;margin-top:1pt;}
+.sh{background:#162B3C;color:white;font-size:8pt;font-weight:700;padding:5pt 9pt;margin-top:9pt;letter-spacing:0.6pt;text-transform:uppercase;}
+.sh-green{background:#45AC34;color:white;font-size:8pt;font-weight:700;padding:5pt 9pt;margin-top:9pt;letter-spacing:0.6pt;text-transform:uppercase;}
+.sh-amber{background:#d97706;color:white;font-size:8pt;font-weight:700;padding:5pt 9pt;margin-top:9pt;letter-spacing:0.6pt;text-transform:uppercase;}
+.ig{width:100%;border-collapse:collapse;border:1pt solid #cbd5e1;}
+.ig td{border-right:1pt solid #e2e8f0;border-bottom:1pt solid #e2e8f0;padding:0;vertical-align:top;}
+.ig td.lc{border-right:none;}
+.ig td.fw{border-right:none;}
+.ig tr:last-child td{border-bottom:none;}
+.il{font-size:7pt;font-weight:700;color:#162B3C;text-transform:uppercase;letter-spacing:0.5pt;padding:4pt 8pt 1pt;}
+.iv{font-size:9pt;padding:2pt 8pt 6pt;color:#1a1a1a;line-height:1.4;}
+.iv.pre{white-space:pre-line;}
+.tb{border:1pt solid #cbd5e1;padding:7pt 9pt;min-height:36pt;font-size:9pt;line-height:1.6;white-space:pre-line;color:#1a1a1a;background:white;}
+.tb-risk{border:1pt solid #fbbf24;background:#fffbeb;padding:7pt 9pt;min-height:28pt;font-size:9pt;line-height:1.6;white-space:pre-line;color:#92400e;}
+.tb-na{border:1pt dashed #d1d5db;padding:7pt 9pt;font-size:8.5pt;color:#9ca3af;font-style:italic;}
+.sg{width:100%;border-collapse:collapse;border:1pt solid #cbd5e1;}
+.sg td{border-right:1pt solid #e2e8f0;border-bottom:1pt solid #e2e8f0;padding:0;vertical-align:top;}
+.sg td.lc{border-right:none;}
+.sg tr:last-child td{border-bottom:none;}
+.doc-tbl{width:100%;border-collapse:collapse;border:1pt solid #cbd5e1;}
+.doc-tbl th{background:#f8fafc;color:#162B3C;font-size:7.5pt;font-weight:700;padding:4pt 8pt;text-align:left;border-bottom:1pt solid #cbd5e1;border-right:1pt solid #e2e8f0;text-transform:uppercase;letter-spacing:0.3pt;}
+.doc-tbl th:last-child{border-right:none;}
+.doc-tbl td{padding:6pt 8pt;border-bottom:1pt solid #e2e8f0;border-right:1pt solid #e2e8f0;font-size:8.5pt;vertical-align:middle;}
+.doc-tbl td:last-child{border-right:none;}
+.doc-tbl tr:last-child td{border-bottom:none;}
+.badge-int{display:inline-block;background:#fef3c7;color:#92400e;font-size:7pt;font-weight:600;padding:1pt 7pt;border-radius:10pt;}
+.badge-ext{display:inline-block;background:#d1fae5;color:#065f46;font-size:7pt;font-weight:600;padding:1pt 7pt;border-radius:10pt;}
+.dt{width:100%;border-collapse:collapse;font-size:8.5pt;}
+.dt th{background:#f0f4f8;color:#162B3C;font-size:7.5pt;font-weight:700;padding:4pt 7pt;text-align:left;border:1pt solid #c8cbd4;text-transform:uppercase;letter-spacing:0.3pt;}
+.dt th.c{text-align:center;}
+.dt td{padding:4pt 7pt;border:1pt solid #d4d7dd;vertical-align:top;}
+.dt td.lc{font-weight:600;color:#162B3C;font-size:8pt;background:#f7f9fc;}
+.cb{display:inline-block;width:10pt;height:10pt;border:1pt solid #9ca3af;vertical-align:middle;}
+.an{font-size:7.5pt;color:#555;line-height:1.4;}
+.sig-tbl{width:100%;border-collapse:collapse;font-size:8.5pt;}
+.sig-tbl td{border:1pt solid #d4d7dd;padding:6pt 7pt;vertical-align:top;}
+.sig-role{width:32%;background:#f7f9fc;}
+.sig-area{width:43%;}
+.sig-dt{width:25%;}
+.sig-div{font-weight:700;font-size:8.5pt;color:#162B3C;}
+.sig-org{font-size:7.5pt;color:#6b7280;margin-top:1pt;}
+.sig-person{font-weight:600;font-size:8.5pt;margin-top:4pt;}
+.sig-ptitle{font-size:7.5pt;color:#6b7280;margin-top:1pt;}
+.sig-note{font-size:7pt;color:#6b7280;font-style:italic;line-height:1.4;margin-top:5pt;border-top:1pt solid #e5e7eb;padding-top:4pt;}
+.sig-lbl{font-size:6.5pt;color:#9ca3af;text-transform:uppercase;letter-spacing:0.4pt;}
+.sig-line{border-bottom:1pt solid #374151;height:32pt;margin:4pt 0 2pt;}
+.sig-line-sm{border-bottom:1pt solid #374151;height:20pt;margin:4pt 0 2pt;}
+.sig-tbl .hdr-row td{background:#162B3C;color:white;font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.4pt;padding:4pt 7pt;}
+.ecta{background:#eff6ff;border:1pt solid #bfdbfe;border-radius:3pt;padding:8pt 10pt;margin-top:10pt;font-size:7.5pt;color:#1e40af;line-height:1.55;}
+.ftr{border-top:1pt solid #e2e8f0;margin-top:10pt;padding-top:5pt;font-size:7pt;color:#9ca3af;display:flex;justify-content:space-between;align-items:center;}
+.conf{font-size:6.5pt;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:0.5pt;}
+</style>
+</head>
+<body><div class="page">
+
+<%# ── Letterhead ───────────────────────────────────────────────────────── %>
+<table class="lh"><tr>
+  <td>
+    <div class="logo-badge">IGSIGN</div>
+    <div class="entity-name"><%= @caf[:entity_name] %></div>
+    <div class="entity-meta">Reg: <%= @caf[:entity_registration] %>
+<%= @caf[:entity_address] %></div>
+  </td>
+  <td class="lh-right">
+    <div class="form-title">CONTRACT APPROVAL FORM</div>
+    <div class="form-sub">Internal Use Only &mdash; Confidential</div>
+    <div class="type-badge">LONG FORM CAF</div>
+    <div class="wf-ref">Workflow #IGSIGN-<%= "%04d" % @caf[:agreement_id] %></div>
+    <div class="wf-date"><%= @caf[:date_prepared] %></div>
+  </td>
+</tr></table>
+
+<%# ── A. Party Details ─────────────────────────────────────────────────── %>
+<div class="sh">A &mdash; Party Details</div>
+<table class="ig">
+  <tr>
+    <td><div class="il">Agreement Type</div><div class="iv"><%= @caf[:agreement_type_label] %></div></td>
+    <td class="lc"><div class="il">Date of Preparation</div><div class="iv"><%= @caf[:date_prepared] %></div></td>
+  </tr>
+  <tr>
+    <td><div class="il">IG Contracting Entity</div><div class="iv"><%= @caf[:entity_name] %></div></td>
+    <td class="lc"><div class="il">Registration Number</div><div class="iv"><%= @caf[:entity_registration] %></div></td>
+  </tr>
+  <tr>
+    <td class="fw" colspan="2"><div class="il">Registered Address</div><div class="iv pre"><%= @caf[:entity_address] %></div></td>
+  </tr>
+  <tr>
+    <td><div class="il">Counterparty / Contracting Party</div><div class="iv"><%= @caf[:counterparty_company].presence || '&mdash;' %></div></td>
+    <td class="lc"><div class="il">Authorised Signatory</div><div class="iv"><%= @caf[:counterparty_contact_name].presence || '&mdash;' %></div></td>
+  </tr>
+  <tr>
+    <td class="fw" colspan="2"><div class="il">Counterparty Signatory Email</div><div class="iv"><%= @caf[:counterparty_email].presence || '&mdash;' %></div></td>
+  </tr>
+  <tr>
+    <td><div class="il">Requestor (sender)</div><div class="iv"><%= @caf[:requestor_name] %></div></td>
+    <td class="lc"><div class="il">Requestor Email</div><div class="iv"><%= @caf[:requestor_email] %></div></td>
+  </tr>
+</table>
+
+<%# ── B. Agreement Summary ────────────────────────────────────────────── %>
+<div class="sh">B &mdash; Agreement Summary</div>
+<table class="sg">
+  <tr>
+    <td class="fw" colspan="3"><div class="il">Purpose / Business Rationale</div>
+      <div class="iv">
+        <% if @caf[:agreement_purpose].present? %>
+          <%= @caf[:agreement_purpose] %>
+        <% elsif @caf[:mandate_description].present? %>
+          <%= @caf[:mandate_description] %>
+        <% else %>
+          <span style="color:#9ca3af;font-style:italic;">To be completed by the requestor.</span>
+        <% end %>
+      </div>
+    </td>
+  </tr>
+  <tr>
+    <td><div class="il">Total Value</div><div class="iv"><%= @caf[:agreement_value].presence || '&mdash;' %></div></td>
+    <td><div class="il">Term / Duration</div><div class="iv"><%= @caf[:agreement_term].presence || '&mdash;' %></div></td>
+    <td class="lc"><div class="il">Payment Terms</div><div class="iv"><%= @caf[:payment_terms].presence || '&mdash;' %></div></td>
+  </tr>
+</table>
+<% if @caf[:key_risks].present? %>
+  <div class="sh-amber">&#9888; Key Clauses / Risks Flagged by Requestor</div>
+  <div class="tb-risk"><%= @caf[:key_risks] %></div>
+<% end %>
+
+<%# ── C. Signing Package ───────────────────────────────────────────────── %>
+<div class="sh">C &mdash; Signing Package</div>
+<table class="doc-tbl">
+  <tr><th style="width:5%">#</th><th style="width:45%">Document</th><th style="width:22%">Audience</th><th>Notes</th></tr>
+  <tr>
+    <td style="text-align:center;font-weight:700;">1</td>
+    <td><strong><%= @caf[:agreement_type_label] %> Approval Form</strong><br><span style="font-size:7.5pt;color:#6b7280;">Auto-generated from agreement details</span></td>
+    <td><span class="badge-int">&#128274; Internal only</span></td>
+    <td style="font-size:8pt;color:#6b7280;">Reviewed by IG signatories. Not sent to counterparty.</td>
+  </tr>
+  <% if @caf[:document_name].present? %>
+  <tr>
+    <td style="text-align:center;font-weight:700;">2</td>
+    <td><strong><%= @caf[:document_name] %></strong><br><span style="font-size:7.5pt;color:#6b7280;">Uploaded agreement document</span></td>
+    <td><span class="badge-ext">&#128275; Shared with counterparty</span></td>
+    <td style="font-size:8pt;color:#6b7280;">Executed by all parties in Stage 2.</td>
+  </tr>
+  <% end %>
+</table>
+
+<%# ── D. Mandate Assessment ───────────────────────────────────────────── %>
+<div class="sh">D &mdash; Mandate Assessment by Department</div>
+<table class="dt">
+  <tr><th style="width:20%">Department</th><th style="width:20%">Signatory</th><th style="width:36%">Approval Statement</th><th style="width:12%">Signature</th><th style="width:12%">Date</th></tr>
+  <tr><td class="lc">Group Procurement</td><td>Ms Callie Baney</td><td class="an">I confirm the counterparty has satisfied Procurement onboarding requirements.</td><td><div style="height:24pt;border-bottom:1pt solid #555;"></div></td><td><div style="height:24pt;border-bottom:1pt solid #555;"></div></td></tr>
+  <tr><td class="lc">Business Unit Finance</td><td><%= @caf[:bu_finance_name] %></td><td class="an">I confirm the commercials are in line with approved budget and financial forecasts.</td><td><div style="height:24pt;border-bottom:1pt solid #555;"></div></td><td><div style="height:24pt;border-bottom:1pt solid #555;"></div></td></tr>
+  <tr><td class="lc">Group Legal</td><td>Craig G. Lawrence</td><td class="an">I confirm the contract has been reviewed and approved by the Legal Department.</td><td><div style="height:24pt;border-bottom:1pt solid #555;"></div></td><td><div style="height:24pt;border-bottom:1pt solid #555;"></div></td></tr>
+</table>
+
+<%# ── E. Contracts Risk Governance Matrix ────────────────────────────── %>
+<div class="sh">E &mdash; Contracts Risk Governance Matrix</div>
+<table class="dt">
+  <tr>
+    <th style="width:34%">Risk Area</th>
+    <th class="c" style="width:10%">Green</th>
+    <th class="c" style="width:10%">Amber</th>
+    <th class="c" style="width:10%">Red</th>
+    <th class="c" style="width:10%">Redline</th>
+    <th>Mitigation / Details</th>
+  </tr>
+  <% ['Contracts Risk Governance Handbook compliance', 'Limitation of Liability', 'Liability Cap (specify amount)', 'Termination for Convenience', 'Indemnities', 'Payment Terms', 'Processing of Personal Information (POPI / GDPR)', 'Intellectual Property Ownership', 'Other risk'].each do |area| %>
+  <tr>
+    <td><%= area %></td>
+    <td style="text-align:center"><div class="cb"></div></td>
+    <td style="text-align:center"><div class="cb"></div></td>
+    <td style="text-align:center"><div class="cb"></div></td>
+    <td style="text-align:center"><div class="cb"></div></td>
+    <td></td>
+  </tr>
+  <% end %>
+</table>
+<p style="font-size:7.5pt;color:#555;padding:3pt 0 5pt;font-style:italic;">Where Amber, Red or Redline: attach mitigation memorandum and identify the member of business accepting the risk.</p>
+
+<%# ── F. Legal Contract Analysis ─────────────────────────────────────── %>
+<div class="sh">F &mdash; Legal Contract Analysis (to be completed by Legal)</div>
+<table class="dt">
+  <tr><th style="width:22%">Topic</th><th>Detail</th><th style="width:22%">Topic</th><th>Detail</th></tr>
+  <tr><td class="lc">Customer or Supplier?</td><td></td><td class="lc">Term of Contract</td><td></td></tr>
+  <tr><td class="lc">Commencement Date</td><td></td><td class="lc">Expiry Date</td><td></td></tr>
+  <tr><td class="lc">Auto-Renewal Clause?</td><td></td><td class="lc">Renewal Notice Date</td><td></td></tr>
+  <tr><td class="lc">Action Required to Renew</td><td colspan="3"></td></tr>
+  <tr><td class="lc">Negotiated / Non-standard Terms</td><td colspan="3" style="height:26pt;"></td></tr>
+</table>
+
+<%# ── G. Approval Chain ───────────────────────────────────────────────── %>
+<div class="sh-green">G &mdash; Internal Approval Chain</div>
+<table class="sig-tbl">
+  <tr class="hdr-row">
+    <td class="sig-role">Role &amp; Signatory</td>
+    <td class="sig-area">Signature &amp; Full Name</td>
+    <td class="sig-dt">Date &amp; Capacity</td>
+  </tr>
+  <%# Requestor %>
+  <tr>
+    <td class="sig-role">
+      <div class="sig-div">Requestor</div>
+      <div class="sig-org">Agreement Originator</div>
+      <div class="sig-person"><%= @caf[:requestor_name] %></div>
+      <div class="sig-ptitle"><%= @caf[:requestor_email] %></div>
+      <div class="sig-note">I have read and understood all commercial terms. I approve that the IG entity should be bound by the terms of this agreement.</div>
+    </td>
+    <td class="sig-area">
+      <div class="sig-lbl">Signature</div><div class="sig-line"></div>
+      <div class="sig-lbl">Full Name (print)</div><div class="sig-line-sm"></div>
+    </td>
+    <td class="sig-dt">
+      <div class="sig-lbl">Date</div><div class="sig-line-sm"></div>
+      <div class="sig-lbl">Capacity</div><div class="sig-line-sm"></div>
+    </td>
+  </tr>
+  <%# BU Heads %>
+  <% @caf[:bu_heads].each do |person| %>
+  <tr>
+    <td class="sig-role">
+      <div class="sig-div">Ignition Group</div>
+      <div class="sig-org">Business Unit Head</div>
+      <div class="sig-person"><%= person[:name] %></div>
+      <div class="sig-ptitle"><%= person[:title] %></div>
+      <div class="sig-note">I confirm this agreement is necessary for IG commercial purposes and I approve the business case.</div>
+    </td>
+    <td class="sig-area">
+      <div class="sig-lbl">Signature</div><div class="sig-line"></div>
+      <div class="sig-lbl">Full Name (print)</div><div class="sig-line-sm"></div>
+    </td>
+    <td class="sig-dt">
+      <div class="sig-lbl">Date</div><div class="sig-line-sm"></div>
+      <div class="sig-lbl">Capacity</div><div class="sig-line-sm"></div>
+    </td>
+  </tr>
+  <% end %>
+  <%# Finance %>
+  <tr>
+    <td class="sig-role">
+      <div class="sig-div">Ignition Group</div>
+      <div class="sig-org">Group Finance Director</div>
+      <div class="sig-person"><%= @caf[:bu_finance_name] %></div>
+      <div class="sig-ptitle"><%= @caf[:bu_finance_title] %></div>
+      <div class="sig-note">I confirm the financial terms are within approved budget parameters.</div>
+    </td>
+    <td class="sig-area">
+      <div class="sig-lbl">Signature</div><div class="sig-line"></div>
+      <div class="sig-lbl">Full Name (print)</div><div class="sig-line-sm"></div>
+    </td>
+    <td class="sig-dt">
+      <div class="sig-lbl">Date</div><div class="sig-line-sm"></div>
+      <div class="sig-lbl">Capacity</div><div class="sig-line-sm"></div>
+    </td>
+  </tr>
+  <%# Group CFO %>
+  <tr>
+    <td class="sig-role">
+      <div class="sig-div">Ignition Group</div>
+      <div class="sig-org">Chief Financial Officer</div>
+      <div class="sig-person">Laren Farquharson</div>
+      <div class="sig-ptitle">Group CFO</div>
+    </td>
+    <td class="sig-area">
+      <div class="sig-lbl">Signature</div><div class="sig-line"></div>
+      <div class="sig-lbl">Full Name (print)</div><div class="sig-line-sm"></div>
+    </td>
+    <td class="sig-dt">
+      <div class="sig-lbl">Date</div><div class="sig-line-sm"></div>
+      <div class="sig-lbl">Capacity</div><div class="sig-line-sm"></div>
+    </td>
+  </tr>
+  <%# COO %>
+  <tr>
+    <td class="sig-role">
+      <div class="sig-div">Ignition Group</div>
+      <div class="sig-org">Chief Operating Officer</div>
+      <div class="sig-person">Donovan Bergsma</div>
+      <div class="sig-ptitle">Group COO</div>
+      <div class="sig-note">Approval noted as per signature to the executed Agreement.</div>
+    </td>
+    <td class="sig-area">
+      <div class="sig-lbl">Signature</div><div class="sig-line"></div>
+      <div class="sig-lbl">Full Name (print)</div><div class="sig-line-sm"></div>
+    </td>
+    <td class="sig-dt">
+      <div class="sig-lbl">Date</div><div class="sig-line-sm"></div>
+      <div class="sig-lbl">Capacity</div><div class="sig-line-sm"></div>
+    </td>
+  </tr>
+  <%# CEO %>
+  <tr>
+    <td class="sig-role">
+      <div class="sig-div">Ignition Group</div>
+      <div class="sig-org">Chief Executive Officer</div>
+      <div class="sig-person">Sean Bergsma</div>
+      <div class="sig-ptitle">Group CEO</div>
+      <div class="sig-note">Approval noted as per signature to the executed Agreement.</div>
+    </td>
+    <td class="sig-area">
+      <div class="sig-lbl">Signature</div><div class="sig-line"></div>
+      <div class="sig-lbl">Full Name (print)</div><div class="sig-line-sm"></div>
+    </td>
+    <td class="sig-dt">
+      <div class="sig-lbl">Date</div><div class="sig-line-sm"></div>
+      <div class="sig-lbl">Capacity</div><div class="sig-line-sm"></div>
+    </td>
+  </tr>
+</table>
+
+<%# ── H. ECTA Compliance Notice ──────────────────────────────────────── %>
+<div class="ecta">
+  <strong>Electronic Signatures &mdash; ECT Act Notice.</strong>
+  This Contract Approval Form is executed as an electronic document pursuant to the
+  <strong>Electronic Communications and Transactions Act 25 of 2002 (ECT Act)</strong>.
+  All signatures appended hereto constitute valid, binding and enforceable electronic
+  signatures (SES-grade) as defined in the ECT Act. Each signatory confirms they are
+  duly authorised to bind the relevant Ignition Group entity to the terms of this
+  agreement. Executed via IGSIGN &mdash; Ignition Group&rsquo;s internal electronic
+  signing platform.
 </div>
-<div class="sh">HIGH LEVEL SUMMARY &amp; MANDATE</div>
-<div class="mb"><%= @caf[:mandate_description].presence || 'To be completed by the requestor.' %></div>
-<div class="sh">MANDATE ASSESSMENT BY DEPARTMENT</div>
-<table><tr><th style="width:20%">Department</th><th style="width:18%">Signatory</th><th style="width:36%">Approval Statement</th><th>Signature</th><th>Date</th></tr>
-<tr><td class="lc">Group Procurement</td><td>Ms Callie Baney</td><td class="an">I approve the counterparty has passed Procurement onboarding requirements.</td><td><div class="sb"></div></td><td><div class="sb"></div></td></tr>
-<tr><td class="lc">Business Unit Finance</td><td><%= @caf[:bu_finance_name] %></td><td class="an">I approve the commercials are in line with budget and financial forecasts.</td><td><div class="sb"></div></td><td><div class="sb"></div></td></tr>
-<tr><td class="lc">Group Legal</td><td>Craig G. Lawrence</td><td class="an">I approve the contract has been vetted and reviewed by the Legal Department.</td><td><div class="sb"></div></td><td><div class="sb"></div></td></tr>
-</table>
-<div class="sh">CONTRACTS RISK GOVERNANCE MATRIX</div>
-<table><tr><th style="width:36%">Risk Area</th><th style="width:12%;text-align:center">Green</th><th style="width:12%;text-align:center">Amber</th><th style="width:12%;text-align:center">Amber</th><th style="width:12%;text-align:center">Redline</th><th>Details</th></tr>
-<% ['Contracts Risk Governance Handbook', 'Limitation of Liability', 'Liability Cap', 'Termination for Convenience', 'Indemnities', 'Payment Terms', 'Processing of Personal Information (POPI)', 'Other'].each do |a| %>
-<tr><td><%= a %></td><td style="text-align:center"><div class="cb"></div></td><td style="text-align:center"><div class="cb"></div></td><td style="text-align:center"><div class="cb"></div></td><td style="text-align:center"><div class="cb"></div></td><td></td></tr><% end %>
-</table>
-<p style="font-size:7.5pt;color:#444;padding:3px 0 5px;font-style:italic;">Where Amber or Redline risk: attach mitigation document and specify the member of business accepting the risk.</p>
-<div class="sh">LEGAL TO COMPLETE &mdash; CONTRACT ANALYSIS</div>
-<table>
-<tr><th style="width:22%">Topic</th><th>Details</th><th style="width:22%">Topic</th><th>Details</th></tr>
-<tr><td class="lc">Customer / Supplier?</td><td></td><td class="lc">Term of Contract</td><td></td></tr>
-<tr><td class="lc">Commencement Date</td><td></td><td class="lc">Expiry Date</td><td></td></tr>
-<tr><td class="lc">Renewal Required?</td><td></td><td class="lc">Renewal Date</td><td></td></tr>
-<tr><td class="lc">Action to Renew</td><td colspan="3"></td></tr>
-<tr><td class="lc">Negotiated Legal Terms</td><td colspan="3" style="height:28px;"></td></tr>
-</table>
-<div class="sh">RISK MANAGEMENT &mdash; CLAUSE REVIEW</div>
-<table><tr><th style="width:42%">Clause</th><th style="width:40%">Risk Identified</th><th>IG Liability Capped?</th></tr>
-<% ['Limitation of Liability (incl. indirect & consequential)', 'Cancellation / Termination', 'Payment Terms', 'Anti-Bribery', 'POPI / Data Protection', 'Change in Shareholding', 'Change in Control', 'Insurance Requirements', 'BBBEE Requirements', 'Business Continuity', 'IP Ownership', 'Assignment'].each do |c| %>
-<tr><td style="font-size:8pt"><%= c %></td><td></td><td style="text-align:center"><div class="cb"></div></td></tr><% end %>
-</table>
-<div class="sh">APPROVALS</div>
-<table><tr><th style="width:24%">Division / Role</th><th style="width:20%">Signatory</th><th style="width:30%">Note</th><th>Signature</th><th>Date</th></tr>
-<tr><td><span class="sn">Requestor</span><br><span class="st"><%= @caf[:requestor_email] %></span></td><td><span class="sn"><%= @caf[:requestor_name] %></span></td><td class="sno">I have read and understood all commercial terms and I approve that Ignition Company should be bound by the terms of this agreement.</td><td><div class="sb"></div></td><td><div class="sb"></div></td></tr>
-<% @caf[:bu_heads].each do |person| %>
-<tr><td><span class="sn">Ignition Group</span><br><span class="st">Business Unit Head</span></td><td><span class="sn"><%= person[:name] %></span><br><span class="st"><%= person[:title] %></span></td><td class="sno">I approve the agreement is necessary for Ignition Group commercial purposes.</td><td><div class="sb"></div></td><td><div class="sb"></div></td></tr>
-<% end %>
-<tr><td><span class="sn">Ignition Group</span><br><span class="st">Business Unit Finance</span></td><td><span class="sn"><%= @caf[:bu_finance_name] %></span><br><span class="st"><%= @caf[:bu_finance_title] %></span></td><td></td><td><div class="sb"></div></td><td><div class="sb"></div></td></tr>
-<tr><td><span class="sn">Ignition Group</span><br><span class="st">Group CFO</span></td><td><span class="sn">Laren Farquharson</span><br><span class="st">Chief Financial Officer</span></td><td></td><td><div class="sb"></div></td><td><div class="sb"></div></td></tr>
-<% if @caf[:caf_type] == 'nda' || @caf[:caf_type] == 'long_form' %>
-<tr><td><span class="sn">Ignition Group</span><br><span class="st">Group COO</span></td><td><span class="sn">Donovan Bergsma</span><br><span class="st">Chief Operating Officer</span></td><td class="sno">Approval noted as per signature to the Agreement.</td><td><div class="sb"></div></td><td><div class="sb"></div></td></tr>
-<% end %>
-<tr><td><span class="sn">Ignition Group</span><br><span class="st">Group CEO</span></td><td><span class="sn">Sean Bergsma</span><br><span class="st">Chief Executive Officer</span></td><td class="sno">Approval noted as per signature to the Agreement.</td><td><div class="sb"></div></td><td><div class="sb"></div></td></tr>
-</table>
-<div class="ftr"><span>IGSIGN &mdash; Ignition Group | Internal &amp; Confidential | Not for external distribution</span><span>Generated: <%= @caf[:date_prepared] %> | Agreement #<%= @caf[:agreement_id] %></span></div>
+
+<%# ── Footer ─────────────────────────────────────────────────────────── %>
+<div class="ftr">
+  <div>
+    <span class="conf">CONFIDENTIAL &mdash; INTERNAL USE ONLY</span><br>
+    IGSIGN &mdash; Ignition Group &mdash; Not for external distribution
+  </div>
+  <div style="text-align:right;">
+    Workflow #IGSIGN-<%= "%04d" % @caf[:agreement_id] %> &mdash; Generated <%= @caf[:date_prepared] %>
+  </div>
+</div>
+
 </div></body></html>

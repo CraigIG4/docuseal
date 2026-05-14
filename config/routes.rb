@@ -81,6 +81,7 @@ Rails.application.routes.draw do
       post :position, action: :save_fields
       get  :review
       post :send_agreement
+      get  :caf_preview
     end
     collection do
       get :search_companies

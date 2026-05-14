@@ -210,6 +210,15 @@
     <% end %>
 
     <div class="flex items-center gap-3">
+      <%= link_to caf_preview_agreement_path(@agreement), target: '_blank',
+                  class: 'px-4 py-2.5 rounded-lg text-sm font-semibold border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors' do %>
+        <span class="flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M7 21h10a2 2 0 0 0 2-2V9.414a1 1 0 0 0-.293-.707l-5.414-5.414A1 1 0 0 0 13 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2z"/>
+          </svg>
+          Preview CAF
+        </span>
+      <% end %>
       <% if @agreement.signatories&.any? { |s| s['placeholder'] } %>
         <p class="text-xs text-amber-600">Some signatories need to be assigned before sending.</p>
       <% end %>
