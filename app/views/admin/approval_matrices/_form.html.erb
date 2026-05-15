@@ -1,0 +1,338 @@
+<%#
+  Shared form for new/edit approval matrix.
+  Locals: matrix (CafApprovalMatrix instance)
+%>
+
+<% all_roles = (IgSignatories::PEOPLE.values.map { |p| p[:name] } + ['counterparty']).uniq %>
+<% all_entities = IgSignatories::ENTITIES.map { |key, val| [val[:short_name] || val[:name], key.to_s] }.sort_by(&:first) %>
+<% agreement_types = CafApprovalMatrix::AGREEMENT_TYPES %>
+
+<style>
+  .matrix-stage {
+    background: #f8fafb;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 12px;
+    position: relative;
+  }
+  .matrix-stage .stage-handle {
+    cursor: grab;
+    color: #bbb;
+    flex-shrink: 0;
+  }
+  .matrix-stage .stage-handle:active { cursor: grabbing; }
+  .matrix-stage-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .role-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #162B3C;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 100px;
+    padding: 3px 10px;
+    margin: 2px;
+  }
+  .role-pill .remove-role {
+    cursor: pointer;
+    opacity: 0.7;
+    font-size: 14px;
+    line-height: 1;
+    margin-left: 2px;
+  }
+  .role-pill .remove-role:hover { opacity: 1; }
+  .flow-preview {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 12px 16px;
+    background: #fff;
+    border: 1px solid #e8ebed;
+    border-radius: 8px;
+    margin-top: 16px;
+    font-size: 12px;
+  }
+  .flow-node {
+    background: #162B3C;
+    color: #fff;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .flow-node.counterparty { background: #45AC34; }
+  .flow-node.stage-label {
+    background: #f0f2f4;
+    color: #7B787F;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 3px 8px;
+  }
+  .flow-arrow { color: #bbb; font-size: 16px; }
+</style>
+
+<%= form_with model: [:admin, matrix], local: true, html: { id: 'matrix-form' } do |f| %>
+  <% if matrix.errors.any? %>
+    <div class="alert alert-error mb-4">
+      <strong><%= matrix.errors.count %> error(s) prevented this matrix from being saved:</strong>
+      <ul style="margin-top:8px;padding-left:16px;">
+        <% matrix.errors.full_messages.each do |msg| %>
+          <li style="font-size:13px;"><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <%# ── Basic details ── %>
+  <div class="card mb-6" style="padding:24px;">
+    <h3 class="igsign-section-head" style="font-size:14px;margin-bottom:16px;">Matrix details</h3>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <%= f.label :name, 'Matrix name', style: 'display:block;font-size:13px;font-weight:600;margin-bottom:4px;' %>
+        <%= f.text_field :name,
+              placeholder: 'e.g. Long Form NDA — ITI above R5m',
+              class: 'input input-bordered w-full' %>
+      </div>
+
+      <div>
+        <%= f.label :value_threshold, 'Value threshold (ZAR)', style: 'display:block;font-size:13px;font-weight:600;margin-bottom:4px;' %>
+        <%= f.number_field :value_threshold,
+              placeholder: 'Leave blank for no threshold',
+              step: '0.01',
+              min: 0,
+              class: 'input input-bordered w-full' %>
+        <p style="font-size:11px;color:#7B787F;margin-top:4px;">Matrix applies when contract value is ≥ this amount. Leave blank to match any value.</p>
+      </div>
+    </div>
+
+    <%# Agreement types checkboxes %>
+    <div style="margin-top:16px;">
+      <p style="font-size:13px;font-weight:600;margin-bottom:8px;">Agreement types <span style="color:#e74c3c;">*</span></p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        <% agreement_types.each do |type| %>
+          <label style="display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid #e2e8f0;border-radius:8px;cursor:pointer;font-size:13px;background:#fff;">
+            <%= check_box_tag 'caf_approval_matrix[agreement_types][]', type,
+                  matrix.agreement_types.include?(type),
+                  id: "agreement_type_#{type}" %>
+            <span style="font-weight:600;text-transform:uppercase;font-size:11px;letter-spacing:0.04em;"><%= type %></span>
+          </label>
+        <% end %>
+      </div>
+      <%# Hidden field ensures agreement_types: [] is sent when nothing checked %>
+      <%= hidden_field_tag 'caf_approval_matrix[agreement_types][]', '' %>
+    </div>
+
+    <%# Entity scope %>
+    <div style="margin-top:16px;">
+      <p style="font-size:13px;font-weight:600;margin-bottom:4px;">Entity scope</p>
+      <p style="font-size:11px;color:#7B787F;margin-bottom:8px;">Leave all unchecked to apply to all IG entities.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        <% all_entities.each do |entity_name, entity_key| %>
+          <label style="display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid #e2e8f0;border-radius:8px;cursor:pointer;font-size:13px;background:#fff;">
+            <%= check_box_tag 'caf_approval_matrix[entity_scope][]', entity_key,
+                  Array(matrix.entity_scope).include?(entity_key),
+                  id: "entity_scope_#{entity_key}" %>
+            <span><%= entity_name %></span>
+          </label>
+        <% end %>
+      </div>
+      <%= hidden_field_tag 'caf_approval_matrix[entity_scope][]', '' %>
+    </div>
+  </div>
+
+  <%# ── Stage builder ── %>
+  <div class="card mb-6" style="padding:24px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <h3 class="igsign-section-head" style="font-size:14px;margin:0;">Approval stages</h3>
+      <button type="button" id="add-stage-btn"
+              style="display:flex;align-items:center;gap:6px;background:#45AC34;color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+        Add Stage
+      </button>
+    </div>
+
+    <div id="stages-container">
+      <% existing = matrix.stages_config.is_a?(Array) ? matrix.stages_config : [] %>
+      <% existing.each_with_index do |stage, idx| %>
+        <%= render 'admin/approval_matrices/stage_fields',
+              stage: stage, index: idx, all_roles: all_roles %>
+      <% end %>
+    </div>
+
+    <%# Visual flow preview %>
+    <div id="flow-preview" class="flow-preview">
+      <span style="font-size:11px;color:#bbb;font-style:italic;">Add stages above to see the flow preview.</span>
+    </div>
+  </div>
+
+  <%# ── Actions ── %>
+  <div style="display:flex;gap:12px;align-items:center;">
+    <%= f.submit matrix.new_record? ? 'Create Matrix' : 'Save Changes',
+          class: 'btn btn-primary',
+          style: 'min-width:160px;' %>
+    <%= link_to 'Cancel', admin_approval_matrices_path,
+          style: 'font-size:14px;color:#7B787F;text-decoration:none;' %>
+  </div>
+<% end %>
+
+<%# ── Stage template (hidden, cloned by JS) ── %>
+<template id="stage-template">
+  <%= render 'admin/approval_matrices/stage_fields',
+        stage: { 'name' => '', 'routing' => 'ordered', 'required_roles' => [], 'strip_internal_on_complete' => false },
+        index: 'STAGE_INDEX',
+        all_roles: all_roles %>
+</template>
+
+<script>
+(function () {
+  let stageIndex = <%= existing.length %>;
+
+  // ---- Add stage -----------------------------------------------------------
+  document.getElementById('add-stage-btn').addEventListener('click', function () {
+    const tpl   = document.getElementById('stage-template').innerHTML
+                    .replace(/STAGE_INDEX/g, stageIndex);
+    const wrap  = document.createElement('div');
+    wrap.innerHTML = tpl;
+    document.getElementById('stages-container').appendChild(wrap.firstElementChild);
+    stageIndex++;
+    bindStageEvents();
+    updatePreview();
+  });
+
+  // ---- Remove stage --------------------------------------------------------
+  function bindStageEvents () {
+    document.querySelectorAll('.remove-stage-btn').forEach(btn => {
+      btn.onclick = function () {
+        this.closest('.matrix-stage').remove();
+        renumberStages();
+        updatePreview();
+      };
+    });
+
+    document.querySelectorAll('.add-role-btn').forEach(btn => {
+      btn.onclick = function () {
+        const select  = this.previousElementSibling;
+        const role    = select.value;
+        if (!role) return;
+        const stage   = this.closest('.matrix-stage');
+        const hidden  = stage.querySelector('.roles-hidden');
+        const pills   = stage.querySelector('.role-pills');
+        const idx     = stage.dataset.idx;
+        addRolePill(pills, hidden, role, idx);
+        updatePreview();
+      };
+    });
+
+    document.querySelectorAll('.remove-role').forEach(el => {
+      el.onclick = function () {
+        const pill   = this.closest('.role-pill');
+        const hidden = pill.dataset.hiddenId;
+        const h      = document.getElementById(hidden);
+        if (h) h.remove();
+        pill.remove();
+        updatePreview();
+      };
+    });
+
+    // Live preview on name / routing change
+    document.querySelectorAll('.stage-name-input, .stage-routing-select').forEach(el => {
+      el.oninput = updatePreview;
+      el.onchange = updatePreview;
+    });
+  }
+
+  function addRolePill(pillsContainer, hiddenContainer, role, stageIdx) {
+    // Prevent duplicates
+    const existing = hiddenContainer.querySelectorAll('input[type=hidden]');
+    for (let i = 0; i < existing.length; i++) {
+      if (existing[i].value === role) return;
+    }
+    const uid = 'role_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    const pill = document.createElement('span');
+    pill.className = 'role-pill';
+    pill.dataset.hiddenId = uid;
+    pill.innerHTML = role + '<span class="remove-role" aria-label="Remove">×</span>';
+    pill.querySelector('.remove-role').onclick = function () {
+      const h = document.getElementById(uid);
+      if (h) h.remove();
+      pill.remove();
+      updatePreview();
+    };
+    pillsContainer.appendChild(pill);
+
+    const input = document.createElement('input');
+    input.type  = 'hidden';
+    input.id    = uid;
+    input.name  = 'caf_approval_matrix[stages_config][' + stageIdx + '][required_roles][]';
+    input.value = role;
+    hiddenContainer.appendChild(input);
+  }
+
+  // ---- Renumber after removal ----------------------------------------------
+  function renumberStages () {
+    document.querySelectorAll('.matrix-stage').forEach((stage, newIdx) => {
+      stage.dataset.idx = newIdx;
+      stage.querySelectorAll('[name]').forEach(el => {
+        el.name = el.name.replace(
+          /\[stages_config\]\[\d+\]/,
+          '[stages_config][' + newIdx + ']'
+        );
+      });
+      stage.querySelectorAll('[id]').forEach(el => {
+        el.id = el.id.replace(/_stage_\d+_/, '_stage_' + newIdx + '_');
+      });
+      stage.querySelector('.stage-number').textContent = 'Stage ' + (newIdx + 1);
+    });
+    stageIndex = document.querySelectorAll('.matrix-stage').length;
+  }
+
+  // ---- Visual flow preview -------------------------------------------------
+  function updatePreview () {
+    const preview = document.getElementById('flow-preview');
+    const stages  = document.querySelectorAll('.matrix-stage');
+    if (!stages.length) {
+      preview.innerHTML = '<span style="font-size:11px;color:#bbb;font-style:italic;">Add stages above to see the flow preview.</span>';
+      return;
+    }
+
+    let html = '';
+    stages.forEach((stage, i) => {
+      const name    = stage.querySelector('.stage-name-input')?.value || 'Stage ' + (i + 1);
+      const routing = stage.querySelector('.stage-routing-select')?.value || 'ordered';
+      const roles   = Array.from(stage.querySelectorAll('.roles-hidden input[type=hidden]'))
+                           .map(h => h.value).filter(Boolean);
+
+      if (i > 0) html += '<span class="flow-arrow">→</span>';
+
+      html += '<div>';
+      html += '<span class="flow-node stage-label">' + escHtml(name) + ' (' + routing + ')</span>';
+      html += '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;">';
+      roles.forEach(r => {
+        const cls = r === 'counterparty' ? 'flow-node counterparty' : 'flow-node';
+        html += '<span class="' + cls + '">' + escHtml(r) + '</span>';
+      });
+      html += '</div></div>';
+    });
+
+    preview.innerHTML = html;
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ---- Init ----------------------------------------------------------------
+  bindStageEvents();
+  updatePreview();
+})();
+</script>

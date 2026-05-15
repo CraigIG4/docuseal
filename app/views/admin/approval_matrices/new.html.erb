@@ -1,0 +1,14 @@
+<%# ── New Approval Matrix ── %>
+
+<div style="max-width:860px;">
+  <div style="margin-bottom:24px;">
+    <div style="font-size:11px;color:#7B787F;letter-spacing:3px;text-transform:uppercase;margin-bottom:6px;">
+      <%= link_to 'Approval Matrices', admin_approval_matrices_path, style: 'color:#7B787F;text-decoration:none;' %>
+      &rsaquo; New
+    </div>
+    <h1 style="font-size:22px;font-weight:800;color:#162B3C;letter-spacing:-0.03em;margin:0;">New Approval Matrix</h1>
+    <div style="width:32px;height:3px;background:#45AC34;border-radius:2px;margin-top:8px;"></div>
+  </div>
+
+  <%= render 'form', matrix: @matrix %>
+</div>

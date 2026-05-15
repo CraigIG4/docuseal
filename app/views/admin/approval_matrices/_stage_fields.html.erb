@@ -1,0 +1,96 @@
+<%#
+  Renders a single stage row in the stage builder.
+  Locals: stage (Hash), index (Integer or 'STAGE_INDEX'), all_roles (Array<String>)
+%>
+<% idx = index %>
+
+<div class="matrix-stage" data-idx="<%= idx %>">
+  <div class="matrix-stage-header">
+    <span class="stage-handle" aria-hidden="true">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+        <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+      </svg>
+    </span>
+    <span class="stage-number" style="font-size:12px;font-weight:700;color:#7B787F;text-transform:uppercase;letter-spacing:0.04em;">Stage <%= idx.to_s == 'STAGE_INDEX' ? 'N' : idx.to_i + 1 %></span>
+    <div style="flex:1;"></div>
+    <button type="button" class="remove-stage-btn"
+            style="background:none;border:none;color:#e74c3c;cursor:pointer;font-size:20px;line-height:1;padding:0 4px;"
+            aria-label="Remove stage">×</button>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4" style="margin-bottom:12px;">
+    <div>
+      <label style="display:block;font-size:12px;font-weight:600;margin-bottom:4px;">Stage name</label>
+      <input type="text"
+             name="caf_approval_matrix[stages_config][<%= idx %>][name]"
+             id="matrix_stage_<%= idx %>_name"
+             value="<%= stage['name'] %>"
+             placeholder="e.g. Internal CAF Approval"
+             class="input input-bordered w-full stage-name-input"
+             style="font-size:13px;" />
+    </div>
+
+    <div>
+      <label style="display:block;font-size:12px;font-weight:600;margin-bottom:4px;">Routing</label>
+      <select name="caf_approval_matrix[stages_config][<%= idx %>][routing]"
+              id="matrix_stage_<%= idx %>_routing"
+              class="select select-bordered w-full stage-routing-select"
+              style="font-size:13px;">
+        <option value="ordered"  <%= 'selected' if stage['routing'] == 'ordered' %>>Ordered (sequential)</option>
+        <option value="parallel" <%= 'selected' if stage['routing'] == 'parallel' %>>Parallel (all at once)</option>
+      </select>
+    </div>
+  </div>
+
+  <%# Strip internal docs toggle %>
+  <label style="display:flex;align-items:center;gap:8px;margin-bottom:12px;cursor:pointer;font-size:13px;">
+    <input type="hidden"   name="caf_approval_matrix[stages_config][<%= idx %>][strip_internal_on_complete]" value="false" />
+    <input type="checkbox" name="caf_approval_matrix[stages_config][<%= idx %>][strip_internal_on_complete]" value="true"
+           id="matrix_stage_<%= idx %>_strip"
+           class="checkbox"
+           <%= 'checked' if stage['strip_internal_on_complete'] %> />
+    <span>Strip internal documents when this stage completes</span>
+    <span style="font-size:11px;color:#7B787F;">(removes CAF before sending to counterparty)</span>
+  </label>
+
+  <%# Roles -%>
+  <div>
+    <label style="display:block;font-size:12px;font-weight:600;margin-bottom:6px;">Required signatories / roles</label>
+
+    <%# Existing pills %>
+    <div class="role-pills" style="display:flex;flex-wrap:wrap;margin-bottom:6px;">
+      <% Array(stage['required_roles']).each do |role| %>
+        <% uid = "role_#{idx}_#{role.parameterize.underscore}_#{rand(10000)}" %>
+        <span class="role-pill" data-hidden-id="<%= uid %>">
+          <%= role %><span class="remove-role" aria-label="Remove">×</span>
+        </span>
+      <% end %>
+    </div>
+
+    <%# Hidden inputs for roles (one per role) %>
+    <div class="roles-hidden" style="display:none;">
+      <% Array(stage['required_roles']).each do |role| %>
+        <% uid = "role_#{idx}_#{role.parameterize.underscore}_#{rand(10000)}" %>
+        <input type="hidden"
+               id="<%= uid %>"
+               name="caf_approval_matrix[stages_config][<%= idx %>][required_roles][]"
+               value="<%= role %>" />
+      <% end %>
+    </div>
+
+    <%# Add role row %>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <select class="select select-bordered select-sm" style="font-size:12px;min-width:220px;">
+        <option value="">— select a role —</option>
+        <% all_roles.each do |role| %>
+          <option value="<%= role %>"><%= role %></option>
+        <% end %>
+      </select>
+      <button type="button" class="add-role-btn btn btn-sm btn-outline"
+              style="font-size:12px;padding:4px 12px;">
+        + Add
+      </button>
+    </div>
+  </div>
+</div>

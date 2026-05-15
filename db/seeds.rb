@@ -217,3 +217,97 @@ else
          "(#{caf_template.fields.length} fields), skipping"
   end
 end
+
+# ---------------------------------------------------------------------------
+# Default Approval Matrices
+# ---------------------------------------------------------------------------
+# Four default matrices covering the standard IG agreement types.
+# Idempotent: matched by account + name.  Existing records are updated if
+# stages_config has drifted (e.g. a new role was added to the standard chain).
+# ---------------------------------------------------------------------------
+
+INTERNAL_STAGES = [
+  {
+    'name'                       => 'Internal CAF Approval',
+    'routing'                    => 'ordered',
+    'required_roles'             => %w[BU\ Head Procurement Finance\ Director CLO CFO COO CEO],
+    'strip_internal_on_complete' => true
+  },
+  {
+    'name'           => 'Counterparty Signing',
+    'routing'        => 'parallel',
+    'required_roles' => ['counterparty']
+  }
+].freeze
+
+LIGHT_STAGES = [
+  {
+    'name'                       => 'Internal CAF Approval',
+    'routing'                    => 'ordered',
+    'required_roles'             => %w[BU\ Head CLO CEO],
+    'strip_internal_on_complete' => true
+  },
+  {
+    'name'           => 'Counterparty Signing',
+    'routing'        => 'parallel',
+    'required_roles' => ['counterparty']
+  }
+].freeze
+
+DEFAULT_MATRICES = [
+  {
+    name:            'Default NDA',
+    agreement_types: ['nda'],
+    entity_scope:    nil,
+    value_threshold: nil,
+    stages_config:   LIGHT_STAGES
+  },
+  {
+    name:            'Default Short Form (any)',
+    agreement_types: %w[addendum sla policy other],
+    entity_scope:    nil,
+    value_threshold: nil,
+    stages_config:   LIGHT_STAGES
+  },
+  {
+    name:            'Long Form — below R5m',
+    agreement_types: %w[msa vendor employment],
+    entity_scope:    nil,
+    value_threshold: nil,
+    stages_config:   LIGHT_STAGES
+  },
+  {
+    name:            'Long Form — R5m and above',
+    agreement_types: %w[msa vendor employment],
+    entity_scope:    nil,
+    value_threshold: 5_000_000,
+    stages_config:   INTERNAL_STAGES
+  }
+].freeze
+
+DEFAULT_MATRICES.each do |attrs|
+  matrix = CafApprovalMatrix.find_or_initialize_by(
+    account: account,
+    name:    attrs[:name]
+  )
+
+  if matrix.new_record?
+    matrix.assign_attributes(
+      agreement_types: attrs[:agreement_types],
+      entity_scope:    attrs[:entity_scope],
+      value_threshold: attrs[:value_threshold],
+      stages_config:   attrs[:stages_config],
+      active:          true
+    )
+    matrix.save!
+    puts "Created approval matrix: #{matrix.name}"
+  else
+    matrix.update!(
+      agreement_types: attrs[:agreement_types],
+      entity_scope:    attrs[:entity_scope],
+      value_threshold: attrs[:value_threshold],
+      stages_config:   attrs[:stages_config]
+    )
+    puts "Updated approval matrix: #{matrix.name}"
+  end
+end

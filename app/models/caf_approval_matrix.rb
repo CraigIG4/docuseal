@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-# Declarative rules table: maps document_type → required stage chain per account.
-# Seed data lives in db/seeds/caf_approval_matrices.rb.
+# Declarative rules table: maps agreement_types + optional entity_scope →
+# required stage chain per account.
 #
 # stages_config is a JSONB array:
 #   [{ "name": "Internal CAF Approval",
@@ -11,45 +11,120 @@
 #    { "name": "Counterparty Signing",
 #      "routing": "parallel",
 #      "required_roles": ["counterparty"] }]
+#
+# Resolution specificity (highest wins):
+#   1. entity_scope matches the workflow's entity  >  entity_scope IS NULL (all entities)
+#   2. value_threshold IS NOT NULL                 >  value_threshold IS NULL
+#   3. agreement_types is a strict subset          >  agreement_types is a superset / wildcard
+#
 # == Schema Information
 #
 # Table name: caf_approval_matrices
 #
-#  id            :bigint           not null, primary key
-#  active        :boolean          default(TRUE), not null
-#  document_type :string           not null
-#  stages_config :jsonb            not null
-#  created_at    :datetime         not null
-#  updated_at    :datetime         not null
-#  account_id    :bigint           not null
-#
-# Indexes
-#
-#  idx_caf_approval_matrices_active_unique    (account_id,document_type) UNIQUE WHERE (active = true)
-#  index_caf_approval_matrices_on_account_id  (account_id)
-#
-# Foreign Keys
-#
-#  fk_rails_...  (account_id => accounts.id)
+#  id              :bigint           not null, primary key
+#  active          :boolean          default(TRUE), not null
+#  agreement_types :jsonb            default([]), not null
+#  document_type   :string                        (legacy, nullable)
+#  entity_scope    :jsonb
+#  name            :string           not null
+#  stages_config   :jsonb            default([]), not null
+#  value_threshold :decimal(15, 2)
+#  created_at      :datetime         not null
+#  updated_at      :datetime         not null
+#  account_id      :bigint           not null
 #
 class CafApprovalMatrix < ApplicationRecord
-  DOCUMENT_TYPES = %w[nda contract employment other].freeze
+  # Keep in sync with CafWorkflow::AGREEMENT_TYPES
+  AGREEMENT_TYPES = %w[nda msa addendum sla vendor employment policy other].freeze
+
+  EVENT_CREATED     = 'MATRIX_CREATED'
+  EVENT_UPDATED     = 'MATRIX_UPDATED'
+  EVENT_DEACTIVATED = 'MATRIX_DEACTIVATED'
+  EVENT_APPLIED     = 'MATRIX_APPLIED'
 
   belongs_to :account
+  has_many   :matrix_audit_events, dependent: :destroy
 
-  validates :document_type, presence: true, inclusion: { in: DOCUMENT_TYPES }
-  validates :stages_config, presence: true
+  validates :name,            presence: true
+  validates :stages_config,   presence: true
+  validates :agreement_types, presence: { message: "must include at least one agreement type" }
+  validates :name, uniqueness: {
+    scope: :account_id,
+    conditions: -> { where(active: true) },
+    message: 'is already taken by another active matrix'
+  }
+  validate  :agreement_types_valid
+  validate  :entity_scope_valid
   validate  :stages_config_valid
 
-  scope :active, -> { where(active: true) }
+  scope :active,          -> { where(active: true) }
+  scope :for_account,     ->(account) { where(account: account) }
+  scope :by_name,         -> { order(:name) }
 
-  # Look up the active matrix for an account + document type.
+  # ---- Legacy lookup (kept for backward compat) -------------------------------
+
   def self.for(account, document_type)
     active.find_by(account: account, document_type: document_type.to_s)
   end
 
+  # ---- Resolution logic -------------------------------------------------------
+  #
+  # Finds the single best-matching active matrix for the given context.
+  # Returns nil if no matrix covers this combination.
+  #
+  # Options:
+  #   agreement_type: (String, required) — e.g. "nda"
+  #   entity:         (String, optional) — e.g. "iti"
+  #   value:          (Numeric, optional) — contract value in ZAR
+  #
+  def self.resolve_for(account, agreement_type:, entity: nil, value: nil)
+    candidates = active
+      .for_account(account)
+      .select { |m| m.covers_agreement_type?(agreement_type) }
+      .select { |m| m.covers_entity?(entity) }
+      .select { |m| m.covers_value?(value) }
+
+    return nil if candidates.empty?
+
+    # Score each candidate — higher is more specific
+    candidates.max_by { |m| m.specificity_score(entity, value) }
+  end
+
+  # ---- Instance helpers -------------------------------------------------------
+
+  def covers_agreement_type?(type)
+    agreement_types.include?(type.to_s)
+  end
+
+  def covers_entity?(entity)
+    # nil entity_scope means "applies to all entities"
+    return true if entity_scope.nil? || entity_scope.empty?
+    return false if entity.blank?
+
+    entity_scope.include?(entity.to_s)
+  end
+
+  def covers_value?(value)
+    # nil threshold means "no value restriction"
+    return true if value_threshold.nil?
+    return false if value.nil?
+
+    value.to_d >= value_threshold
+  end
+
+  # Higher score = more specific match.  Broken into three independent bits:
+  #   bit 2: entity is explicitly scoped   (4 points)
+  #   bit 1: value threshold is set        (2 points)
+  #   bit 0: agreement_types is a singleton(1 point)
+  def specificity_score(entity = nil, value = nil)
+    score = 0
+    score += 4 if entity_scope.present?
+    score += 2 if value_threshold.present?
+    score += 1 if agreement_types.length == 1
+    score
+  end
+
   # Build (but do not save) stage records for a given submission.
-  # Caller is responsible for persisting and assigning submitters.
   def build_stages_for(submission)
     stages_config.each_with_index.map do |cfg, idx|
       submission.caf_stages.build(
@@ -62,7 +137,68 @@ class CafApprovalMatrix < ApplicationRecord
     end
   end
 
+  def deactivate!(actor: nil)
+    return false unless active?
+
+    update!(active: false)
+    log_audit_event(EVENT_DEACTIVATED, actor: actor)
+    true
+  end
+
+  def log_audit_event(event_type, actor: nil, extra: {})
+    matrix_audit_events.create!(
+      account_id:  account_id,
+      user_id:     actor&.id,
+      event_type:  event_type,
+      data:        {
+        matrix_name:     name,
+        agreement_types: agreement_types,
+        entity_scope:    entity_scope,
+        value_threshold: value_threshold&.to_s
+      }.merge(extra)
+    )
+  end
+
+  # ---- Presentation helpers ---------------------------------------------------
+
+  def entity_scope_label
+    if entity_scope.blank?
+      'All entities'
+    else
+      entity_scope.map { |e|
+        entry = IgSignatories::ENTITIES[e.to_sym]
+        entry ? (entry[:short_name] || entry[:name]) : e
+      }.join(', ')
+    end
+  end
+
+  def agreement_types_label
+    agreement_types.map(&:upcase).join(', ')
+  end
+
+  def stage_count
+    stages_config.length
+  end
+
   private
+
+  def agreement_types_valid
+    return unless agreement_types.is_a?(Array)
+
+    invalid = agreement_types - AGREEMENT_TYPES
+    if invalid.any?
+      errors.add(:agreement_types, "contains unknown types: #{invalid.join(', ')}")
+    end
+  end
+
+  def entity_scope_valid
+    return if entity_scope.nil?
+    return unless entity_scope.is_a?(Array)
+
+    valid_keys = IgSignatories::ENTITIES.keys.map(&:to_s)
+    invalid    = entity_scope - valid_keys
+    errors.add(:entity_scope, "contains unknown entities: #{invalid.join(', ')}") if invalid.any?
+  end
 
   def stages_config_valid
     return unless stages_config.is_a?(Array)

@@ -100,6 +100,12 @@ Rails.application.routes.draw do
         get :signatories_for
       end
     end
+
+    resources :approval_matrices, only: %i[index new create edit update] do
+      member do
+        patch :deactivate
+      end
+    end
   end
 
   # Legacy /cafs redirects — keeps bookmarks and old links working.

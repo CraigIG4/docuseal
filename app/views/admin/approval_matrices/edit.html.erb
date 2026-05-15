@@ -1,0 +1,47 @@
+<%# ── Edit Approval Matrix ── %>
+
+<div style="max-width:860px;">
+  <div style="margin-bottom:24px;">
+    <div style="font-size:11px;color:#7B787F;letter-spacing:3px;text-transform:uppercase;margin-bottom:6px;">
+      <%= link_to 'Approval Matrices', admin_approval_matrices_path, style: 'color:#7B787F;text-decoration:none;' %>
+      &rsaquo; Edit
+    </div>
+    <h1 style="font-size:22px;font-weight:800;color:#162B3C;letter-spacing:-0.03em;margin:0;">Edit: <%= @matrix.name %></h1>
+    <div style="width:32px;height:3px;background:#45AC34;border-radius:2px;margin-top:8px;"></div>
+  </div>
+
+  <% unless @matrix.active? %>
+    <div class="alert alert-warning mb-4" style="border-left-color:#f59e0b;">
+      <strong>This matrix is inactive.</strong> It is not currently applied to new agreements.
+      Saving changes will keep it inactive until you reactivate it manually.
+    </div>
+  <% end %>
+
+  <%= render 'form', matrix: @matrix %>
+
+  <%# Audit trail %>
+  <% events = @matrix.matrix_audit_events.recent.limit(10) %>
+  <% if events.any? %>
+    <div class="card mt-8" style="padding:20px 24px;">
+      <h3 class="igsign-section-head" style="font-size:14px;margin-bottom:12px;">Audit trail</h3>
+      <table class="table w-full" style="font-size:12px;">
+        <thead>
+          <tr>
+            <th>When</th>
+            <th>Event</th>
+            <th>By</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% events.each do |event| %>
+            <tr>
+              <td><%= event.created_at.strftime('%d %b %Y %H:%M') %></td>
+              <td><code style="font-size:11px;"><%= event.event_type %></code></td>
+              <td><%= event.user&.full_name || 'System' %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</div>

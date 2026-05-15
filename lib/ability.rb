@@ -24,5 +24,11 @@ class Ability
     can :manage, WebhookUrl, account_id: user.account_id
 
     can :manage, :mcp
+
+    # Approval matrices — admin-only; scoped to account
+    if user.role == User::ADMIN_ROLE
+      can :manage, CafApprovalMatrix, account_id: user.account_id
+      can :read,   MatrixAuditEvent,  account_id: user.account_id
+    end
   end
 end
