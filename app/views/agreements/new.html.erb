@@ -89,31 +89,43 @@
           </div>
         </div>
 
-        <%# ── Toggle: switch between search and manual entry ─────────────────── %>
+        <%# ── Toggle: Can't find company? Enter manually ────────────────────── %>
         <div style="margin-top:10px;border-top:1px solid #e5e7eb;padding-top:8px;">
-          <button type="button" id="co_manual_btn" style="font-size:12px;color:#3b82f6;background:none;border:none;cursor:pointer;padding:0;font-weight:500;">Or enter manually</button>
-          <button type="button" id="co_search_btn" style="display:none;font-size:12px;color:#3b82f6;background:none;border:none;cursor:pointer;padding:0;font-weight:500;">← Search companies instead</button>
+          <button type="button" id="co_manual_btn"
+                  style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:#374151;background:white;border:1px solid #d1d5db;border-radius:6px;padding:5px 12px;cursor:pointer;">
+            <svg style="width:13px;height:13px;flex-shrink:0;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            Can't find company? Enter manually
+          </button>
+          <button type="button" id="co_search_btn"
+                  style="display:none;align-items:center;gap:5px;font-size:12px;font-weight:500;color:#374151;background:white;border:1px solid #d1d5db;border-radius:6px;padding:5px 12px;cursor:pointer;">
+            ← Back to company search
+          </button>
         </div>
 
-        <%# ── Manual entry block (default hidden) ────────────────────────────── %>
+        <%# ── Manual entry block — company name only.
+            Email is always visible below; this block adds contracting_party. ── %>
         <div id="co_manual_block" style="display:none;margin-top:10px;">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-            <%= f.text_field :contracting_party, id: 'co_man_name', autocomplete: 'organization',
-                placeholder: 'Company / entity name',
-                style: 'border-radius:8px;border:1px solid #d1d5db;background:white;padding:9px 12px;font-size:13px;box-sizing:border-box;width:100%;' %>
-            <%= f.email_field :counterparty_email, id: 'ag_ct_email', autocomplete: 'email',
-                placeholder: 'contact@company.co.za',
-                style: 'border-radius:8px;border:1px solid #d1d5db;background:white;padding:9px 12px;font-size:13px;box-sizing:border-box;width:100%;' %>
-          </div>
-          <p style="margin-top:5px;font-size:11px;color:#9ca3af;">No company record required — details go directly onto the agreement.</p>
+          <%= f.text_field :contracting_party, id: 'co_man_name', autocomplete: 'organization',
+              placeholder: 'Company / entity name',
+              style: 'width:100%;border-radius:8px;border:1px solid #d1d5db;background:white;padding:9px 12px;font-size:13px;box-sizing:border-box;' %>
+          <p style="margin-top:5px;font-size:11px;color:#9ca3af;">Name goes directly onto the agreement — no company record required.</p>
         </div>
       </div>
 
-      <div>
-        <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Counterparty Contact Name</label>
-        <%= f.text_field :counterparty_name, id: 'ag_ct_name', autocomplete: 'off',
-            style: 'width:100%;border-radius:8px;border:1px solid #d1d5db;padding:9px 12px;font-size:14px;box-sizing:border-box;',
-            placeholder: 'John Smith' %>
+      <%# Counterparty contact details — always visible regardless of company path. %>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div>
+          <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Counterparty Contact Name</label>
+          <%= f.text_field :counterparty_name, id: 'ag_ct_name', autocomplete: 'off',
+              style: 'width:100%;border-radius:8px;border:1px solid #d1d5db;padding:9px 12px;font-size:14px;box-sizing:border-box;',
+              placeholder: 'John Smith' %>
+        </div>
+        <div>
+          <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Counterparty Contact Email</label>
+          <%= f.email_field :counterparty_email, id: 'ag_ct_email', autocomplete: 'email',
+              style: 'width:100%;border-radius:8px;border:1px solid #d1d5db;padding:9px 12px;font-size:14px;box-sizing:border-box;',
+              placeholder: 'john@company.co.za' %>
+        </div>
       </div>
       <div>
         <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Mandate &amp; Purpose</label>
@@ -247,7 +259,7 @@
     var combtn=document.getElementById('co_manual_btn'),cosbtn=document.getElementById('co_search_btn');
     if(coMB)coMB.style.display='none';
     if(coSB)coSB.style.display='';
-    if(combtn)combtn.style.display='';
+    if(combtn)combtn.style.display='inline-flex';
     if(cosbtn)cosbtn.style.display='none';
     fetchRecentSignatories(c.id,c.name);
   }
@@ -327,8 +339,8 @@
     sb.style.display='none';
     rsPanel.style.display='none';
     rsSelectedId=null;
+    // Clear company name input; email is user-controlled — do not wipe it
     var cmn=document.getElementById('co_man_name');if(cmn)cmn.value='';
-    if(ce)ce.value='';
   });
   var nb=document.getElementById('co_new_btn'),nf=document.getElementById('co_new_form');
   nb&&nb.addEventListener('click',function(){var h=nf.style.display!=='block';nf.style.display=h?'block':'none';nb.textContent=h?'- Hide form':'+ Add new company';});
@@ -338,18 +350,17 @@
   var comb=document.getElementById('co_manual_btn'),cosb=document.getElementById('co_search_btn');
   comb&&comb.addEventListener('click',function(){
     coSB.style.display='none';coMB.style.display='';
-    comb.style.display='none';cosb.style.display='';
-    // Clear company_id — manual entry should not bind to a company record
+    comb.style.display='none';cosb.style.display='inline-flex';
+    // Clear company_id — manual entry does not bind to a company record
     if(ci)ci.value='';
     if(sb)sb.style.display='none';
     if(rsPanel)rsPanel.style.display='none';
   });
   cosb&&cosb.addEventListener('click',function(){
     coSB.style.display='';coMB.style.display='none';
-    comb.style.display='';cosb.style.display='none';
-    // Clear manual inputs so stale values are not submitted
+    comb.style.display='inline-flex';cosb.style.display='none';
+    // Clear only the company name field; email is always-visible and user-owned
     var cmn=document.getElementById('co_man_name');if(cmn)cmn.value='';
-    if(ce)ce.value='';
   });
   var ncn=document.getElementById('nc_name'),nce=document.getElementById('nc_email');
   ncn&&ncn.addEventListener('input',function(){if(cn&&!cn.value)cn.value=ncn.value;});
