@@ -18,8 +18,12 @@ class CafCompletionHandler
         return { success: false, error: 'Internal stage not found or not complete' }
       end
 
-      # ── 1. Mark Stage 1 complete (uses built-in complete! which strips + advances) ──
-      stage1.complete!
+      # ── 1. Mark Stage 1 complete ─────────────────────────────────────────────
+      # complete! uses an optimistic status-transition lock (WHERE status = 'active').
+      # If another thread already completed this stage, it returns false — we
+      # return early so no side-effects (events, emails, status updates) are
+      # duplicated.  Both concurrent callers end up with { success: true }.
+      return { success: true } unless stage1.complete!
 
       # ── 2. Populate + activate Stage 2 (counterparty) ───────────────────────
       # Note: stage1.complete! already calls advance_to_next_stage!, which activates

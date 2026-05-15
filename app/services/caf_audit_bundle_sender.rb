@@ -15,11 +15,16 @@ class CafAuditBundleSender
       stage2 = counterparty_stage
       return { success: false, error: 'Counterparty stage not found or not complete' } unless stage2&.all_submitters_complete?
 
-      stage2.update!(status: 'complete', completed_at: Time.current)
+      # Optimistic lock: only one concurrent caller can win the status transition.
+      # If another thread already completed stage2, complete! returns false and
+      # we return early — preventing duplicate audit emails and status updates.
+      return { success: true } unless stage2.complete!
+
       @caf.update!(status: 'complete')
     end
 
-    # Send audit bundle emails outside the transaction so DB is committed first
+    # Send audit bundle emails outside the transaction so DB is committed first.
+    # Reached only by the one caller whose complete! call returned true.
     deliver_audit_bundle
 
     Rails.logger.info("[CafAuditBundleSender] CAF #{@caf.id} fully complete — audit bundle sent")

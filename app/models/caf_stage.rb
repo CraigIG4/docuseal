@@ -63,16 +63,30 @@ class CafStage < ApplicationRecord
   # Transition: active → complete. Records audit marker on internal docs if
   # flagged, then advances to the next stage.
   #
+  # Returns true when the transition succeeds, false when another thread already
+  # completed this stage (0 rows matched the WHERE status = 'active' guard).
+  # Callers that care about idempotency should check the return value.
+  #
   # Note: the stripped/stripped_at columns are INFORMATIONAL audit markers only.
   # Visibility filtering is enforced at query time by Submission#documents_for
   # and SubmitFormController#maybe_filter_caf_schema_for_counterparty using the
   # internal_only flag.  No PDF bytes are manipulated.
   def complete!
     transaction do
-      update!(status: 'complete', completed_at: Time.current)
+      # Atomic compare-and-swap on status — only one concurrent caller can win.
+      # update_all issues a single UPDATE … WHERE id = ? AND status = 'active',
+      # which the DB serialises under row-level locking.  If another thread won
+      # the race and already set status to 'complete', rows_updated will be 0
+      # and we return false immediately, skipping all side-effects.
+      rows_updated = CafStage.where(id: id, status: 'active')
+                             .update_all(status: 'complete', completed_at: Time.current)
+      return false if rows_updated == 0
+
+      reload  # bring in-memory object into sync after the update_all bypass
       record_internal_document_transition! if strip_internal_on_complete?
       advance_to_next_stage!
     end
+    true
   end
 
   # True once all submitters in this stage have signed.
