@@ -2,7 +2,7 @@
 <html data-theme="IGSIGN" lang="<%= I18n.locale %>">
   <head>
     <%= render 'layouts/head_tags' %>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <%= csrf_meta_tags %>
     <% if ENV['ROLLBAR_CLIENT_TOKEN'] %>
       <meta name="rollbar-token" content="<%= ENV.fetch('ROLLBAR_CLIENT_TOKEN', nil) %>">
@@ -11,46 +11,211 @@
       <%= javascript_pack_tag 'form', defer: true %>
     <% end %>
     <%= stylesheet_pack_tag 'form', media: 'all' %>
-    <%# IGSIGN: signing form — clean IG-branded experience for counterparties %>
+
+    <%# ============================================================
+        IGSIGN signing-form CSS overrides
+        Applies on top of DaisyUI/Tailwind from the compiled form pack.
+        Specificity strategy: .igsign-* classes + !important on brand colours.
+        ============================================================ %>
     <style>
-      *, *::before, *::after { font-family: 'DM Sans', 'Avenir', Arial, sans-serif !important; }
+      /* ---- Fonts ---- */
+      *, *::before, *::after {
+        font-family: 'DM Sans', 'Avenir', Arial, sans-serif !important;
+      }
+
+      /* ---- Body background ---- */
       body { background-color: #f5f7f9; }
+
+      /* ---- Header / footer chrome ---- */
       .igsign-form-header {
-        background-color: #162B3C;
-        padding: 12px 24px;
+        background: linear-gradient(135deg, #162B3C 0%, #1a3347 100%);
+        padding: 12px 20px;
         display: flex;
         align-items: center;
         justify-content: space-between;
         border-bottom: 3px solid #45AC34;
+        position: sticky;
+        top: 0;
+        z-index: 100;
       }
       .igsign-form-footer {
         text-align: center;
-        padding: 16px;
+        padding: 16px 20px;
         font-size: 11px;
         color: #7B787F;
         border-top: 1px solid #e8ebed;
         margin-top: 32px;
+        line-height: 1.6;
+      }
+
+      /* ---- Primary / neutral buttons — IGSIGN navy ---- */
+      .btn-neutral, .btn-primary, .base-button {
+        background-color: #162B3C !important;
+        border-color: #162B3C !important;
+        color: #ffffff !important;
+      }
+      .btn-neutral:hover, .btn-primary:hover, .base-button:hover {
+        opacity: 0.88 !important;
+      }
+
+      /* ---- Progress dot strip ---- */
+      .steps-progress .steps-progress-current {
+        background-color: #45AC34 !important;
+        border-color: #45AC34 !important;
+      }
+      /* completed step dots */
+      .steps-progress button.bg-base-content {
+        background-color: #162B3C !important;
+        border-color: #162B3C !important;
+      }
+
+      /* ---- "Expand form" / "Sign now" floating button ---- */
+      #expand_form_button {
+        background-color: #162B3C !important;
+        border-color: #162B3C !important;
+        border-radius: 8px !important;
+        font-size: 15px !important;
+        font-weight: 600 !important;
+      }
+
+      /* ---- Form container panel ---- */
+      .form-container {
+        border-radius: 12px 12px 0 0 !important;
+        border-color: #e8ebed !important;
+      }
+
+      /* ---- Input focus ring ---- */
+      input:focus, textarea:focus, select:focus {
+        outline: none !important;
+        border-color: #162B3C !important;
+        box-shadow: 0 0 0 3px rgba(22,43,60,0.12) !important;
+      }
+
+      /* ---- Signature pad canvas ---- */
+      .draw-canvas {
+        border-color: #e8ebed !important;
+        border-radius: 12px !important;
+        touch-action: none;
+      }
+
+      /* ---- ECT Act legal note ---- */
+      .ig-ect-note {
+        font-size: 11px;
+        color: #9aa3ae;
+        text-align: center;
+        margin-top: 8px;
+        padding: 0 8px;
+        line-height: 1.5;
+      }
+
+      /* ---- Completion screen ---- */
+      .completed-form { padding: 16px 0; }
+      .completed-form-message-title {
+        font-size: 24px !important;
+        font-weight: 700 !important;
+        color: #162B3C !important;
+      }
+      /* override default green check with IGSIGN accent */
+      .completed-form .text-green-600 {
+        color: #45AC34 !important;
+      }
+      .completed-form-download-button {
+        background-color: #162B3C !important;
+        border-color: #162B3C !important;
+        color: #ffffff !important;
+        border-radius: 8px !important;
+        min-height: 48px !important;
+        font-weight: 600 !important;
+        font-size: 15px !important;
+      }
+      .completed-form-send-copy-button {
+        border-color: #162B3C !important;
+        color: #162B3C !important;
+        border-radius: 8px !important;
+        min-height: 48px !important;
+      }
+
+      /* ================================================================
+         MOBILE-FIRST POLISH
+         Target: iPhone SE (375px) and Pixel 7 (412px)
+         ================================================================ */
+
+      /* Minimum 44×44 touch targets on all interactive elements */
+      button, a, [role="button"], input[type="checkbox"], input[type="radio"], label {
+        min-height: 44px;
+      }
+      /* Exception: small icon buttons in the header keep their size */
+      .igsign-form-header button { min-height: unset; }
+      /* Progress dots are intentionally small */
+      .steps-progress button { min-height: 12px; }
+
+      /* Minimum 14px body text */
+      body, p, span, div, td, th, li {
+        font-size: max(14px, 1em);
+      }
+      /* Allow headings to go smaller */
+      h1, h2, h3 { font-size: revert; }
+
+      /* Prevent horizontal scroll on mobile */
+      html, body { overflow-x: hidden; max-width: 100vw; }
+
+      /* Field labels — large enough on mobile */
+      .field-name-label {
+        font-size: 18px !important;
+        line-height: 1.3 !important;
+      }
+
+      /* Bottom panel — ensure keyboard doesn't cover it */
+      #form_container {
+        padding-bottom: env(safe-area-inset-bottom, 12px);
+      }
+
+      /* Signature canvas — full width on mobile */
+      @media (max-width: 640px) {
+        .draw-canvas {
+          width: 100% !important;
+        }
+        .form-container {
+          padding: 12px !important;
+        }
+        /* Make sure the "next" button is big enough to tap */
+        #submit_form_button, .submit-form-button {
+          min-height: 52px !important;
+          font-size: 16px !important;
+          border-radius: 8px !important;
+        }
+        /* Page viewer — no horizontal scroll */
+        page-container {
+          max-width: 100vw;
+          overflow: hidden;
+        }
+        /* Modal dismiss area */
+        .modal-box {
+          max-height: 90dvh;
+          overflow-y: auto;
+        }
       }
     </style>
   </head>
   <body>
     <%# Signing form header: IG branding strip %>
     <header class="igsign-form-header">
-      <%= render 'shared/logo', dark: true, height: '32' %>
-      <span style="color:rgba(255,255,255,0.6); font-size:12px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase;">
-        e-Signing Portal
+      <a href="/" style="display:flex; align-items:center; gap:10px; text-decoration:none;">
+        <%= render 'shared/logo', dark: true, height: '30' %>
+      </a>
+      <span style="color:rgba(255,255,255,0.55); font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase;">
+        Secure e-Signing
       </span>
     </header>
 
     <%= yield %>
 
-    <%# Footer — replaces powered_by %>
+    <%# Footer — ECT Act compliance notice %>
     <footer class="igsign-form-footer">
-      Ignition Group e-Signing Portal &mdash; IGSIGN &bull;
-      Digitally signed documents are legally binding under the
-      Electronic Communications and Transactions Act 25 of 2002 (South Africa)
+      <strong style="color:#162B3C;">IGSIGN</strong> &mdash; Ignition Group e-Signing Portal<br>
+      Signed documents are legally binding under the
+      <strong>Electronic Communications and Transactions Act 25 of 2002</strong> (South Africa)
     </footer>
 
-    <%# Remove IGSIGN attribution from form pages — internal tool %>
   </body>
 </html>

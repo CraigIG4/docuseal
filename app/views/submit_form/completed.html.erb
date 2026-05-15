@@ -1,54 +1,82 @@
-<main class="max-w-md mx-auto px-2 mt-12 mb-4">
-  <div class="space-y-6 mx-auto">
-    <div class="space-y-6">
-      <div class="flex items-center justify-center">
-        <%= render 'start_form/banner' %>
-      </div>
-      <div class="flex items-center bg-base-200 rounded-xl p-4 mb-4">
-        <div class="flex items-center">
-          <div class="mr-3">
-            <%= svg_icon('writing_sign', class: 'w-10 h-10') %>
-          </div>
-          <div>
-            <p dir="auto" class="text-lg font-bold mb-1"><%= @submitter.submission.name || @submitter.submission.template.name %></p>
-            <p dir="auto" class="text-sm">
-              <%= t(@submitter.with_signature_fields? ? 'signed_on_time' : 'completed_on_time', time: l(@submitter.completed_at.to_date, format: :long)) %>
-            </p>
-          </div>
+<%# IGSIGN — shown when a submitter revisits their magic link after completing %>
+<main style="max-width:480px; margin:0 auto; padding:32px 20px 48px; box-sizing:border-box;">
+  <div style="background:#ffffff; border-radius:16px; border:1px solid #e8ebed; box-shadow:0 4px 20px rgba(22,43,60,0.08); overflow:hidden;">
+
+    <!-- Green accent header -->
+    <div style="background:linear-gradient(135deg,#162B3C 0%,#1a3347 100%); padding:24px 28px; border-bottom:3px solid #45AC34;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:36px; height:36px; background:rgba(69,172,52,0.2); border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+          <!-- Checkmark SVG -->
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#45AC34" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div>
+          <div style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.5); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:2px;">IGSIGN</div>
+          <div style="font-size:18px; font-weight:700; color:#ffffff;">You're done.</div>
         </div>
       </div>
     </div>
-    <div>
-      <% if (Docuseal.multitenant? || Accounts.can_send_emails?(@submitter.account)) && @submitter.email.present? %>
-        <toggle-submit>
-          <%= button_to button_title(title: t('send_copy_to_email'), disabled_with: t('sending'), icon: svg_icon('mail_forward', class: 'w-6 h-6')), send_submission_email_index_path, params: { submitter_slug: @submitter.slug }, class: 'white-button w-full' %>
-        </toggle-submit>
-        <% if Templates.filter_undefined_submitters(@submitter.submission.template_submitters).size != 1 %>
-          <div class="divider uppercase"><%= t('or') %></div>
-        <% else %>
-          <div class="py-2"></div>
+
+    <!-- Body -->
+    <div style="padding:24px 28px;">
+      <!-- Agreement card -->
+      <div style="background:#f5f7f9; border:1px solid #e8ebed; border-left:4px solid #45AC34; border-radius:8px; padding:14px 18px; margin-bottom:20px;">
+        <div style="font-size:11px; font-weight:700; color:#7B787F; text-transform:uppercase; letter-spacing:0.07em; margin-bottom:4px;">Signed document</div>
+        <div style="font-size:15px; font-weight:700; color:#162B3C;"><%= @submitter.submission.name || @submitter.submission.template.name %></div>
+        <div style="font-size:12px; color:#7B787F; margin-top:4px;">
+          Signed on <%= l(@submitter.completed_at.to_date, format: :long) %>
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <% if @submitter.completed_at > 30.minutes.ago || (current_user && current_user.account.submitters.exists?(id: @submitter.id)) %>
+          <download-button
+            role="button"
+            tabindex="0"
+            aria-label="<%= t('download_documents') %>"
+            data-src="<%= submit_form_documents_path(@submitter.slug) %>"
+            style="display:flex; align-items:center; justify-content:center; gap:8px; background:#162B3C; color:#ffffff; border:none; border-radius:8px; padding:14px 20px; font-size:15px; font-weight:700; cursor:pointer; font-family:inherit; min-height:52px; text-decoration:none;">
+            <span style="display:flex; align-items:center; gap:8px;" data-target="download-button.defaultButton">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download signed documents
+            </span>
+            <span class="hidden" data-target="download-button.loadingButton" style="display:none; align-items:center; gap:8px;">
+              <%= svg_icon('loader', class: 'w-5 h-5 animate-spin') %>
+              Downloading…
+            </span>
+          </download-button>
         <% end %>
-      <% end %>
-      <% if @submitter.completed_at > 30.minutes.ago || (current_user && current_user.account.submitters.exists?(id: @submitter.id)) %>
-        <download-button role="button" tabindex="0" aria-label="<%= t('download_documents') %>" data-src="<%= submit_form_documents_path(@submitter.slug) %>" class="base-button w-full">
-          <span class="flex items-center justify-center space-x-2" data-target="download-button.defaultButton">
-            <%= svg_icon('download', class: 'w-6 h-6') %>
-            <span><%= t('download_documents') %></span>
-          </span>
-          <span class="flex items-center justify-center space-x-2 hidden" data-target="download-button.loadingButton">
-            <%= svg_icon('loader', class: 'w-6 h-6 animate-spin') %>
-            <span><%= t('downloading') %></span>
-          </span>
-        </download-button>
-      <% end %>
+
+        <% if Docuseal.multitenant? || Accounts.can_send_emails?(@submitter.account) %>
+          <% if @submitter.email.present? %>
+            <toggle-submit>
+              <%= button_to(
+                    nil,
+                    send_submission_email_index_path,
+                    params: { submitter_slug: @submitter.slug },
+                    style: 'display:flex; align-items:center; justify-content:center; gap:8px; background:#ffffff; color:#162B3C; border:1px solid #e8ebed; border-radius:8px; padding:13px 20px; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit; min-height:48px; width:100%;'
+                  ) do %>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                Re-send copies to <%= @submitter.email %>
+              <% end %>
+            </toggle-submit>
+          <% end %>
+        <% end %>
+      </div>
+
+      <!-- Legal note -->
+      <div style="margin-top:20px; padding:14px 16px; background:#f9fbfc; border:1px solid #e8ebed; border-radius:8px;">
+        <p style="margin:0; font-size:12px; color:#7B787F; line-height:1.6;">
+          This document was signed electronically and is legally binding under the
+          <strong style="color:#162B3C;">Electronic Communications and Transactions Act 25 of 2002</strong>.
+          The signing event has been recorded in the audit trail.
+        </p>
+      </div>
     </div>
-    <% undefined_submitters = Templates.filter_undefined_submitters(@submitter.submission.template_submitters) %>
-    <% if undefined_submitters.size == 1 && undefined_submitters.first['uuid'] == @submitter.uuid && %w[api embed].exclude?(@submitter.submission.source) && @submitter.account.account_configs.find_or_initialize_by(key: AccountConfig::ALLOW_TO_RESUBMIT).value != false && @submitter.template && !@submitter.template.archived_at? %>
-      <div class="divider uppercase"><%= t('or') %></div>
-      <toggle-submit class="block">
-        <%= button_to button_title(title: t('resubmit'), disabled_with: t('resubmit'), icon: svg_icon('reload', class: 'w-6 h-6')), resubmit_form_path, params: { resubmit: @submitter.slug }, method: :put, class: 'white-button w-full' %>
-      </toggle-submit>
-    <% end %>
+  </div>
+
+  <!-- IGSIGN attribution -->
+  <div style="text-align:center; margin-top:20px; font-size:11px; color:#b0bac4;">
+    Powered by <strong style="color:#162B3C;">IGSIGN</strong> — Ignition Group&rsquo;s contract signing platform
   </div>
 </main>
-<%= render 'shared/attribution', link_path: '/start', account: @submitter.account %>

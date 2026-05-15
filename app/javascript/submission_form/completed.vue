@@ -14,7 +14,7 @@
         :height="30"
       />
       <span class="completed-form-message-title">
-        {{ completedMessage.title || (hasSignatureFields ? (hasMultipleDocuments ? t('documents_have_been_signed') : t('document_has_been_signed')) : t('form_has_been_completed')) }}
+        {{ completedMessage.title || "You're done." }}
       </span>
     </div>
     <div
@@ -26,7 +26,6 @@
       />
     </div>
     <div class="space-y-3 mt-5">
-      <a
         v-if="completedButton.url"
         :href="sanitizeUrl(completedButton.url)"
         rel="noopener noreferrer nofollow"
@@ -74,44 +73,26 @@
           {{ t('download') }}
         </span>
       </button>
-      <a
-        v-if="isDemo"
-        target="_blank"
-        href="https://sign.ignitiongroup.co.za"
-        class="white-button flex items-center space-x-1 w-full"
-      >
-        <IconBrandGithub />
-        <span>
-          Star on Github
-        </span>
-      </a>
-      <a
-        v-if="isDemo"
-        href="https://sign.ignitiongroup.co.za"
-        class="white-button flex items-center space-x-1 w-full"
-      >
-        <IconLogin />
-        <span>
-          {{ t('create_a_free_account') }}
-        </span>
-      </a>
     </div>
+    <!-- IGSIGN: emailed copy notice -->
     <div
-      v-if="attribution"
-      class="text-center mt-4"
+      v-if="canSendEmail && submitter && submitter.email"
+      class="text-center mt-3 text-sm text-gray-500"
     >
-      {{ t('powered_by') }}
-      <a
-        href="https://sign.ignitiongroup.co.za"
-        target="_blank"
-        class="underline"
-      >IGSIGN</a> — Ignition Group e-Signing Portal
+      &#x2713; We've emailed copies to {{ submitter.email }}
+    </div>
+
+    <!-- IGSIGN powered-by footer -->
+    <div
+      class="text-center mt-4 text-xs text-gray-400"
+    >
+      Powered by <strong style="color:#162B3C">IGSIGN</strong> &mdash; Ignition Group's contract signing platform
     </div>
   </div>
 </template>
 
 <script>
-import { IconCircleCheck, IconBrandGithub, IconMail, IconDownload, IconInnerShadowTop, IconLogin } from '@tabler/icons-vue'
+import { IconCircleCheck, IconMail, IconDownload, IconInnerShadowTop } from '@tabler/icons-vue'
 import MarkdownContent from './markdown_content'
 import { sanitizeUrl } from '@braintree/sanitize-url'
 
@@ -121,9 +102,7 @@ export default {
     MarkdownContent,
     IconCircleCheck,
     IconInnerShadowTop,
-    IconBrandGithub,
     IconMail,
-    IconLogin,
     IconDownload
   },
   inject: ['baseUrl', 't'],
@@ -131,6 +110,11 @@ export default {
     submitterSlug: {
       type: String,
       required: true
+    },
+    submitter: {
+      type: Object,
+      required: false,
+      default: () => ({})
     },
     isDemo: {
       type: Boolean,

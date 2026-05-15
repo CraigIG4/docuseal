@@ -215,10 +215,12 @@ class SubmitterMailer < ApplicationMailer
   def build_invite_subject(subject, email_config, submitter)
     if email_config || subject
       ReplaceEmailVariables.call(subject || email_config.value['subject'], submitter:)
-    elsif submitter.with_signature_fields?
-      I18n.t(:you_are_invited_to_sign_a_document)
     else
-      I18n.t(:you_are_invited_to_submit_a_form)
+      # IGSIGN — branded subject line for counterparty-facing invitations
+      account_name    = submitter.account.name.presence || 'IGSIGN'
+      submission_name = (submitter.submission.name.presence ||
+                          submitter.submission.template.name).truncate(60)
+      "#{account_name} — please review and sign: #{submission_name}"
     end
   end
 

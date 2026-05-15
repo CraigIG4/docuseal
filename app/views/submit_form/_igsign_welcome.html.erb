@@ -1,0 +1,122 @@
+<%#
+  IGSIGN Welcome overlay — shown once per signing session via sessionStorage.
+  Hidden by default; JS reveals it on first visit, then removes on "Continue".
+  Falls back gracefully if JS is disabled (overlay stays hidden = no barrier).
+%>
+<%
+  requestor      = @submitter.submission.created_by_user || @submitter.submission.template&.author
+  requestor_name = requestor&.full_name.presence || @submitter.account.name
+  org_name       = @submitter.account.name
+  doc_name       = @submitter.submission.name.presence || @submitter.submission.template.name
+  doc_count      = @submitter.submission.schema.size
+  doc_label      = doc_count == 1 ? '1 document' : "#{doc_count} documents"
+  welcome_key    = "ig-welcomed-#{@submitter.slug}"
+%>
+
+<div id="ig-welcome-overlay"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="ig-welcome-heading"
+     style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(22,43,60,0.72); align-items:center; justify-content:center; padding:20px; box-sizing:border-box;">
+
+  <div style="background:#ffffff; border-radius:16px; max-width:480px; width:100%; padding:32px 28px; box-shadow:0 20px 60px rgba(0,0,0,0.3); position:relative; max-height:90dvh; overflow-y:auto;">
+
+    <!-- Header bar -->
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:24px;">
+      <div style="width:40px; height:40px; background:#162B3C; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+        <!-- Document / pen icon -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#45AC34" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
+        </svg>
+      </div>
+      <div>
+        <div style="font-size:11px; font-weight:700; color:#7B787F; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:2px;">IGSIGN — Secure e-Signing</div>
+        <div style="font-size:13px; font-weight:600; color:#162B3C;"><%= org_name %></div>
+      </div>
+    </div>
+
+    <!-- Heading -->
+    <h1 id="ig-welcome-heading" style="margin:0 0 8px; font-size:22px; font-weight:700; color:#162B3C; line-height:1.25;">
+      You have <%= doc_label %> to review and sign
+    </h1>
+    <p style="margin:0 0 20px; font-size:14px; color:#5a6572; line-height:1.55;">
+      <strong style="color:#162B3C;"><%= requestor_name %></strong>
+      from <strong style="color:#162B3C;"><%= org_name %></strong>
+      has sent you the following for signature:
+    </p>
+
+    <!-- Agreement card -->
+    <div style="background:#f5f7f9; border:1px solid #e8ebed; border-left:4px solid #45AC34; border-radius:8px; padding:14px 18px; margin-bottom:24px;">
+      <div style="font-size:11px; font-weight:700; color:#7B787F; text-transform:uppercase; letter-spacing:0.07em; margin-bottom:4px;">Agreement</div>
+      <div style="font-size:16px; font-weight:700; color:#162B3C;"><%= doc_name %></div>
+    </div>
+
+    <!-- What you'll need -->
+    <div style="margin-bottom:24px;">
+      <div style="font-size:11px; font-weight:700; color:#7B787F; text-transform:uppercase; letter-spacing:0.07em; margin-bottom:10px;">What to expect</div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="display:flex; gap:10px; font-size:13px; color:#4a4a4a;">
+          <span>⏱</span><span>About 5 minutes to review and sign</span>
+        </div>
+        <div style="display:flex; gap:10px; font-size:13px; color:#4a4a4a;">
+          <span>📄</span><span>You'll receive a signed copy by email once complete</span>
+        </div>
+        <div style="display:flex; gap:10px; font-size:13px; color:#4a4a4a;">
+          <span>🔒</span><span>Signed under the ECT Act 25 of 2002 — legally binding</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Continue CTA -->
+    <button id="ig-welcome-continue"
+            style="width:100%; background:#162B3C; color:#ffffff; border:none; border-radius:8px; padding:16px; font-size:16px; font-weight:700; cursor:pointer; font-family:inherit; min-height:52px; letter-spacing:0.2px;"
+            onmouseover="this.style.opacity='0.88'"
+            onmouseout="this.style.opacity='1'">
+      Continue to review documents →
+    </button>
+
+    <!-- Close (small X for accessibility) -->
+    <button id="ig-welcome-close"
+            aria-label="Close welcome screen"
+            style="position:absolute; top:14px; right:14px; background:none; border:none; cursor:pointer; color:#9aa3ae; padding:6px; line-height:1;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  var KEY = '<%= j welcome_key %>';
+  var overlay = document.getElementById('ig-welcome-overlay');
+  if (!overlay) return;
+
+  // Show on first visit only
+  if (!sessionStorage.getItem(KEY)) {
+    overlay.style.display = 'flex';
+    // Trap focus inside overlay for accessibility
+    var firstFocusable = overlay.querySelector('#ig-welcome-continue');
+    if (firstFocusable) firstFocusable.focus();
+  }
+
+  function dismiss() {
+    sessionStorage.setItem(KEY, '1');
+    overlay.style.opacity = '0';
+    overlay.style.transition = 'opacity 0.2s';
+    setTimeout(function () { overlay.remove(); }, 200);
+  }
+
+  document.getElementById('ig-welcome-continue').addEventListener('click', dismiss);
+  document.getElementById('ig-welcome-close').addEventListener('click', dismiss);
+
+  // Allow Escape key
+  overlay.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') dismiss();
+  });
+
+  // Click backdrop to dismiss
+  overlay.addEventListener('click', function (e) {
+    if (e.target === overlay) dismiss();
+  });
+})();
+</script>

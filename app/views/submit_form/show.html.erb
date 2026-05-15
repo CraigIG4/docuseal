@@ -8,6 +8,7 @@
 <% page_blob_struct = Struct.new(:url, :metadata) %>
 <% schema = Submissions.filtered_conditions_schema(@submitter.submission, values:, include_submitter_uuid: @submitter.uuid) %>
 <% font_scale = 1000.0 / PdfUtils::US_LETTER_W %>
+<%= render 'submit_form/igsign_welcome' %>
 <% decline_modal_id = nil %>
 <% delegate_modal_id = nil %>
 <div style="max-height: -webkit-fill-available;">

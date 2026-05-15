@@ -6,8 +6,8 @@ module.exports = {
     themes: [
       {
         // IGSIGN brand theme — Ignition Group CI, Brand Bible v1
-        // Theme key kept as 'docuseal' to avoid hunting data-theme references across views.
-        docuseal: {
+        // data-theme="IGSIGN" is set on all layouts; the key must match exactly.
+        IGSIGN: {
           'color-scheme': 'light',
           primary: '#162B3C',      // Arctic Black  — PANTONE 303 C
           secondary: '#7B787F',    // Cool Grey     — PANTONE Cool Grey 9 C

@@ -578,6 +578,13 @@
             </span>
           </button>
           <div
+          <p
+            v-if="!onlyRequiredFields && stepFields.length === currentStep + 1 || (onlyRequiredFields && !findNextStep(currentStep))"
+            class="ig-ect-note"
+          >
+            By clicking &ldquo;{{ submitButtonText }}&rdquo;, you are signing this agreement under the
+            Electronic Communications and Transactions Act 25 of 2002. This action is recorded.
+          </p>
             v-if="showFillAllRequiredFields"
             role="alert"
             class="text-center mt-1"
@@ -611,6 +618,7 @@
         :with-confetti="withConfetti"
         :can-send-email="canSendEmail && !!submitter.email"
         :submitter-slug="submitterSlug"
+        :submitter="submitter"
       />
       <nav
         v-if="stepFields.length < 80"
