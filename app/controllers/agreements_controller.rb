@@ -95,10 +95,10 @@ class AgreementsController < ApplicationController
 
   # rubocop:disable Metrics/MethodLength
   def process_upload
-    file = params[:file]
-    if file.blank?
+    files = Array(params[:files]).reject(&:blank?)
+    if files.empty?
       return redirect_to upload_agreement_path(@agreement),
-                         alert: 'Please choose a document to upload.'
+                         alert: 'Please choose at least one document to upload.'
     end
 
     template = Template.new(
@@ -113,7 +113,7 @@ class AgreementsController < ApplicationController
     end
 
     begin
-      Templates::CreateAttachments.call(template, { files: [file] }, extract_fields: true)
+      Templates::CreateAttachments.call(template, { files: }, extract_fields: true)
       @agreement.update!(template_id: template.id)
       redirect_to position_agreement_path(@agreement)
     rescue StandardError => e
@@ -179,8 +179,8 @@ class AgreementsController < ApplicationController
 
   def review
     @step = 3
-    @signatories = @agreement.signatories || []
-    @template_doc = @agreement.template
+    @signatories   = @agreement.signatories || []
+    @template_docs = @agreement.template&.documents&.attachments&.includes(:blob) || []
 
     @counterparty_signatory = load_counterparty_signatory
   end

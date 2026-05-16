@@ -144,55 +144,62 @@ class CafSubmissionCreator
     File.delete(pdf_path) if pdf_path && File.exist?(pdf_path)
   end
 
-  # Attaches the uploaded agreement to the submission and registers it as an
-  # externally-visible document (internal_only: false).
+  # Attaches every uploaded agreement document to the submission and registers
+  # each as an externally-visible document (internal_only: false).
   #
-  # The document lives on @caf.template (created by AgreementsController#process_upload
+  # Documents live on @caf.template (created by AgreementsController#process_upload
   # via Templates::CreateAttachments), not on @caf.contract_document.
+  # Multiple files may be attached when the sender uploaded more than one document.
   def attach_contract_document(submission)
-    template   = @caf.template
-    src_attach = template&.documents&.attachments&.first
-    return unless src_attach
+    template = @caf.template
+    return unless template
 
-    blob = src_attach.blob
-    submission.documents.attach(blob)
-    attachment = ActiveStorage::Attachment.find_by!(
-      record_type: 'Submission', record_id: submission.id,
-      name: 'documents', blob_id: blob.id
-    )
+    template.documents.attachments.each do |src_attach|
+      blob = src_attach.blob
+      submission.documents.attach(blob)
+      attachment = ActiveStorage::Attachment.find_by!(
+        record_type: 'Submission', record_id: submission.id,
+        name: 'documents', blob_id: blob.id
+      )
 
-    CafStageDocument.create!(
-      submission:    submission,
-      document_uuid: attachment.uuid,
-      document_name: blob.filename.to_s,
-      internal_only: false
-    )
+      CafStageDocument.create!(
+        submission:    submission,
+        document_uuid: attachment.uuid,
+        document_name: blob.filename.to_s,
+        internal_only: false
+      )
+    end
   end
 
   # Merges user-positioned fields from the agreement template into the
   # submission so the signing form renders them alongside the CAF fields.
   #
-  # Because the agreement blob is re-attached at the submission level (new
+  # Because each agreement blob is re-attached at the submission level (new
   # ActiveStorage::Attachment record, different UUID), every area reference
-  # must be remapped from the template attachment UUID to the submission
-  # attachment UUID before merging.
+  # must be remapped from the template attachment UUID to the corresponding
+  # submission attachment UUID before merging.  When multiple documents are
+  # uploaded, all template→submission UUID pairs are built into a single map
+  # and applied in one pass over the fields array.
   def merge_agreement_template_fields!(submission)
-    template   = @caf.template
-    src_attach = template&.documents&.attachments&.first
-    return unless src_attach && template.fields.present?
+    template = @caf.template
+    return unless template && template.fields.present?
 
-    sub_attach = ActiveStorage::Attachment.find_by(
-      record_type: 'Submission', record_id: submission.id,
-      name: 'documents', blob_id: src_attach.blob_id
-    )
-    return unless sub_attach
+    # Build a complete remap: template attachment UUID → submission attachment UUID.
+    # One entry per uploaded document.
+    uuid_map = template.documents.attachments.each_with_object({}) do |src, map|
+      sub_attach = ActiveStorage::Attachment.find_by(
+        record_type: 'Submission', record_id: submission.id,
+        name: 'documents', blob_id: src.blob_id
+      )
+      map[src.uuid] = sub_attach.uuid if sub_attach
+    end
 
-    tpl_att_uuid = src_attach.uuid
-    sub_att_uuid = sub_attach.uuid
+    return if uuid_map.empty?
 
     remapped = template.fields.map do |field|
       remapped_areas = (field['areas'] || []).map do |area|
-        area['attachment_uuid'] == tpl_att_uuid ? area.merge('attachment_uuid' => sub_att_uuid) : area
+        new_uuid = uuid_map[area['attachment_uuid']]
+        new_uuid ? area.merge('attachment_uuid' => new_uuid) : area
       end
       field.merge('areas' => remapped_areas)
     end
