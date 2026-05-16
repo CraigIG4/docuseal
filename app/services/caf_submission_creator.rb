@@ -20,6 +20,17 @@
 # After all IG signatories complete, CafCompletionHandler fires to activate
 # Stage 2 (counterparty).
 class CafSubmissionCreator
+  # Maps CAF signatory roles to the corresponding slot name in the IGSIGN CAF
+  # Template.  Roles absent from this map have no positioned fields on the
+  # signing-page PDF and legitimately receive random UUIDs (DocuSeal will still
+  # prompt them to sign, just without pre-placed field boxes).
+  TEMPLATE_SLOT_FOR_ROLE = {
+    'BU Head'          => 'BU Head',
+    'Finance Director' => 'Finance Director',
+    'CEO'              => 'CEO',
+    'COO'              => 'CEO'   # COO signs in the CEO block when the CEO is absent
+  }.freeze
+
   def initialize(caf, initiated_by_user)
     @caf  = caf
     @user = initiated_by_user
@@ -68,14 +79,18 @@ class CafSubmissionCreator
   end
 
   def attach_signatories(submission)
-    # Map template submitter UUIDs by role name so each Submitter record
-    # gets the UUID the template fields are already bound to.  Without this,
-    # fields appear in the signing form but are owned by a UUID that matches
-    # no actual submitter, rendering them as unassigned blanks.
-    tpl_sub_by_role = (submission.template&.submitters || []).index_by { |s| s['name'] }
+    # Map template submitter UUIDs by slot name so each Submitter record gets
+    # the UUID the template fields are already bound to.  Without this, fields
+    # appear in the signing form but are owned by a UUID that matches no actual
+    # submitter, rendering them as unassigned blanks.
+    #
+    # TEMPLATE_SLOT_FOR_ROLE handles aliases (e.g. COO → CEO slot) so that a
+    # COO signatory is assigned to the CEO signature block on the PDF.
+    tpl_sub_by_name = (submission.template&.submitters || []).index_by { |s| s['name'] }
 
     @caf.signatories.each_with_index do |sig, idx|
-      uuid = tpl_sub_by_role.dig(sig['role'], 'uuid') || SecureRandom.uuid
+      slot = TEMPLATE_SLOT_FOR_ROLE[sig['role']]
+      uuid = (slot && tpl_sub_by_name.dig(slot, 'uuid')) || SecureRandom.uuid
 
       submission.submitters.create!(
         account:  @caf.account,
@@ -215,6 +230,13 @@ class CafSubmissionCreator
     when 'short_form', 'long_form'  then 'contract'
     else                                 'other'
     end
+  end
+
+  # Returns the stable UUID of the 'Counterparty' slot in the IGSIGN CAF Template,
+  # falling back to a fresh UUID if the template or slot is missing.
+  def counterparty_uuid_from_template(submission)
+    tpl_sub = (submission.template&.submitters || []).find { |s| s['name'] == 'Counterparty' }
+    tpl_sub&.dig('uuid') || SecureRandom.uuid
   end
 
   def find_or_create_caf_template

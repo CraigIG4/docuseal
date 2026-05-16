@@ -97,11 +97,17 @@ class CafCompletionHandler
     submission = @caf.caf_submission
     return if stage2.caf_stage_submitters.exists?
 
+    # Reuse the stable UUID from the 'Counterparty' slot in the IGSIGN CAF
+    # Template so the counterparty's signature fields are correctly bound.
+    # Falls back to a fresh UUID only if the template slot is missing.
+    tpl_sub = (submission.template&.submitters || []).find { |s| s['name'] == 'Counterparty' }
+    counterparty_uuid = tpl_sub&.dig('uuid') || SecureRandom.uuid
+
     submitter = submission.submitters.create!(
       account: @caf.account,
       name: @caf.counterparty_name.presence || @caf.contracting_party,
       email: @caf.counterparty_email,
-      uuid: SecureRandom.uuid,
+      uuid: counterparty_uuid,
       slug: SecureRandom.base58(14),
       metadata: { 'caf_role' => 'Counterparty Signatory', 'stage' => 2 }
     )
