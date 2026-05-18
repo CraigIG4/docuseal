@@ -132,7 +132,7 @@
 
 <%# ── Turbo Frame polling (active workflows only) ──────────────────────────── %>
 <% if @agreement.pending_ig? || @agreement.sent_counterparty? %>
-  <script>
+  <script nonce="<%= content_security_policy_nonce %>">
   (function () {
     var frameId = 'signing-journey-<%= @agreement.id %>';
     var timer;

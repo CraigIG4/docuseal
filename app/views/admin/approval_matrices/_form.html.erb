@@ -193,7 +193,7 @@
         all_roles: all_roles %>
 </template>
 
-<script>
+<script nonce="<%= content_security_policy_nonce %>">
 (function () {
   let stageIndex = <%= existing.length %>;
 
