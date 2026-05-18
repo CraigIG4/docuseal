@@ -27,5 +27,16 @@ class SendSubmitterInvitationEmailJob
 
     submitter.sent_at ||= Time.current
     submitter.save!
+
+    # Stamp invited_at on the CafStageSubmitter so ReminderCheckJob can
+    # calculate the 2/5/9/14-day escalation ladder from the actual send time.
+    # Uses update_all (no callbacks, no reload) — safe to call for non-CAF
+    # submitters because the WHERE clause will simply match zero rows.
+    CafStageSubmitter
+      .joins(:caf_stage)
+      .where(submitter_id: submitter.id)
+      .where(caf_stages: { status: 'active' })
+      .where(invited_at: nil)
+      .update_all(invited_at: Time.current)
   end
 end

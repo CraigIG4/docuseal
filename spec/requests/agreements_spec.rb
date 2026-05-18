@@ -50,6 +50,48 @@ RSpec.describe 'Agreements', type: :request do
     end
   end
 
+  # ── Prompt 2: remind endpoint ────────────────────────────────────────────────
+
+  describe 'POST /agreements/:id/remind' do
+    context 'when no submission exists' do
+      let(:workflow) do
+        create(:caf_workflow, account: account, created_by_user: user,
+                              agreement_type: 'nda', status: 'draft')
+      end
+
+      it 'redirects with an alert' do
+        post remind_agreement_path(workflow)
+
+        expect(response).to redirect_to(agreement_path(workflow))
+        expect(flash[:alert]).to match(/not been submitted/i)
+      end
+    end
+
+    context 'when the workflow is active with pending submitters' do
+      let(:submission) { create(:submission, account: account) }
+      let(:workflow) do
+        create(:caf_workflow, account: account, created_by_user: user,
+                              agreement_type: 'msa', status: 'pending_ig',
+                              caf_submission: submission)
+      end
+      let(:stage)      { create(:caf_stage, submission: submission, status: 'active') }
+      let(:submitter)  { create(:submitter, submission: submission) }
+      let!(:css) do
+        create(:caf_stage_submitter, caf_stage: stage, submitter: submitter,
+                                     invited_at: 3.days.ago)
+      end
+
+      it 'queues a reminder and redirects with a notice' do
+        allow(ReminderMailer).to receive_message_chain(:signing_reminder, :deliver_later)
+
+        post remind_agreement_path(workflow)
+
+        expect(response).to redirect_to(agreement_path(workflow))
+        expect(flash[:notice]).to match(/reminder/i)
+      end
+    end
+  end
+
   # ── Bug 6: caf_preview guards against blank entity ──────────────────────────
 
   describe 'GET /agreements/:id/caf_preview' do

@@ -83,6 +83,7 @@ Rails.application.routes.draw do
       post :send_agreement
       get  :caf_preview
       get  :signing_journey
+      post :remind
     end
     collection do
       get :search_companies
@@ -95,6 +96,7 @@ Rails.application.routes.draw do
     resources :workflows, only: %i[index new create show edit update destroy] do
       member do
         post :submit
+        post :resend_invite
       end
       collection do
         get :signatories_for

@@ -4,7 +4,7 @@
 class AgreementsController < ApplicationController
   skip_authorization_check
   before_action :authenticate_user!
-  before_action :set_agreement, only: %i[show upload process_upload position save_fields review send_agreement caf_preview signing_journey]
+  before_action :set_agreement, only: %i[show upload process_upload position save_fields review send_agreement caf_preview signing_journey remind]
 
   # ── Index ──────────────────────────────────────────────────────────────────
 
@@ -224,6 +224,50 @@ class AgreementsController < ApplicationController
     end
   end
 
+  # ── Remind ────────────────────────────────────────────────────────────────
+
+  # rubocop:disable Metrics/MethodLength
+  # POST /agreements/:id/remind
+  # Queues immediate reminder emails for all unsigned submitters in the current
+  # active stage.  Resets the reminder ladder so day-2/5/9/14 restarts from now.
+  # Only the agreement's requestor (or any authenticated user with access) can
+  # trigger this — workflow ownership is enforced by set_agreement scoping to
+  # current_account.
+  def remind
+    submission = @agreement.caf_submission
+    unless submission
+      return redirect_to agreement_path(@agreement),
+                         alert: 'Cannot send reminders — this agreement has not been submitted yet.'
+    end
+
+    active_stage = submission.caf_stages.active.ordered_by_position.first
+    unless active_stage
+      return redirect_to agreement_path(@agreement),
+                         alert: 'No active signing stage found — all parties may have already signed.'
+    end
+
+    count = 0
+    active_stage.caf_stage_submitters
+                .not_completed
+                .includes(:submitter)
+                .find_each do |css|
+      next if css.submitter.completed_at.present?
+
+      ReminderMailer.signing_reminder(css, days_since_invite(css)).deliver_later
+      css.update_columns(reminder_sent_at: Time.current)
+      count += 1
+    end
+
+    if count.positive?
+      redirect_to agreement_path(@agreement),
+                  notice: "Reminders sent to #{count} pending #{count == 1 ? 'signatory' : 'signatories'}."
+    else
+      redirect_to agreement_path(@agreement),
+                  alert: 'No pending signatories to remind — everyone has already signed.'
+    end
+  end
+  # rubocop:enable Metrics/MethodLength
+
   # ── CAF Preview ───────────────────────────────────────────────────────────
 
   def caf_preview
@@ -417,6 +461,14 @@ class AgreementsController < ApplicationController
 
     @agreement.company.company_signatories
               .find_by(email: @agreement.counterparty_email.strip.downcase)
+  end
+
+  # Returns the number of whole days since a CafStageSubmitter's invite was sent.
+  # Falls back to 0 if invited_at is blank.
+  def days_since_invite(css)
+    return 0 unless css.invited_at
+
+    ((Time.current - css.invited_at) / 1.day).to_i
   end
 
   # Returns a user-facing flash notice summarising the auto-field-detection

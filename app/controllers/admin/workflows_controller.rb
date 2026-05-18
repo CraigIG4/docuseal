@@ -8,7 +8,7 @@ module Admin
     skip_authorization_check
     before_action :authenticate_user!
     before_action :require_admin!
-    before_action :set_caf, only: %i[show edit update destroy submit]
+    before_action :set_caf, only: %i[show edit update destroy submit resend_invite]
 
     def index
       @cafs = current_account.caf_workflows.recent
@@ -79,6 +79,39 @@ module Admin
         redirect_to admin_workflow_path(@caf), alert: 'Only draft CAFs can be submitted.'
       end
     end
+
+    # rubocop:disable Metrics/MethodLength
+    # POST /admin/workflows/:id/resend_invite — re-queue invitation emails for all
+    # unsigned active-stage submitters and reset their reminder counters so the
+    # 2/5/9/14-day ladder restarts from the new send time.
+    def resend_invite
+      submission = @caf.caf_submission
+      unless submission
+        return redirect_to admin_workflow_path(@caf), alert: 'No submission found for this workflow.'
+      end
+
+      active_stage = submission.caf_stages.active.ordered_by_position.first
+      unless active_stage
+        return redirect_to admin_workflow_path(@caf), alert: 'No active stage found — workflow may already be complete.'
+      end
+
+      count = 0
+      active_stage.caf_stage_submitters
+                  .not_completed
+                  .includes(:submitter)
+                  .find_each do |css|
+        next if css.submitter.completed_at.present?
+
+        SendSubmitterInvitationEmailJob.perform_async('submitter_id' => css.submitter_id)
+        # Reset reminder ladder so the clock restarts from this new invite.
+        css.update_columns(invited_at: nil, reminder_count: 0, reminder_sent_at: nil, escalated_at: nil)
+        count += 1
+      end
+
+      redirect_to admin_workflow_path(@caf),
+                  notice: "Invitations resent to #{count} pending #{count == 1 ? 'signatory' : 'signatories'}."
+    end
+    # rubocop:enable Metrics/MethodLength
 
     # GET /admin/workflows/signatories_for — AJAX: return signatories for entity + type
     def signatories_for

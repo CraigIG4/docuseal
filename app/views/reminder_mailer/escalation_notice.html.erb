@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signature Escalation — IGSIGN</title>
+</head>
+<body style="margin:0;padding:0;background:#f5f7fa;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f7fa;padding:32px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(22,43,60,0.1);">
+
+        <%# ── Header ── %>
+        <tr>
+          <td style="background:linear-gradient(135deg,#7f1d1d 0%,#991b1b 100%);padding:28px 40px;">
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td>
+                  <div style="font-size:11px;color:rgba(255,255,255,0.45);letter-spacing:4px;text-transform:uppercase;margin-bottom:6px;">IGSIGN · ESCALATION</div>
+                  <div style="font-size:20px;font-weight:800;color:#fff;">Workflow Blocked — Action Required</div>
+                  <div style="width:32px;height:3px;background:#fca5a5;border-radius:2px;margin-top:10px;"></div>
+                </td>
+                <td align="right" style="vertical-align:middle;">
+                  <div style="width:48px;height:48px;background:#dc2626;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <%# ── Body ── %>
+        <tr>
+          <td style="padding:32px 40px;">
+            <p style="font-size:15px;color:#162B3C;margin:0 0 16px;">Dear <%= @caf.requestor_name %>,</p>
+
+            <p style="font-size:14px;color:#4a5568;line-height:1.7;margin:0 0 20px;">
+              A signatory on your agreement has not signed after <strong style="color:#dc2626;"><%= @days_outstanding %> days</strong>.
+              The workflow cannot progress until they act. Please follow up directly or consider reassigning the signature request.
+            </p>
+
+            <%# Blocked signatory card %>
+            <table width="100%" cellpadding="0" cellspacing="0" style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;margin-bottom:24px;">
+              <tr>
+                <td style="padding:18px 22px;">
+                  <p style="font-size:12px;font-weight:600;color:#991b1b;text-transform:uppercase;letter-spacing:0.8px;margin:0 0 10px;">Blocking Signatory</p>
+                  <table width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="padding:5px 0;border-bottom:1px solid #fecaca;">
+                        <span style="font-size:12px;color:#7f1d1d;font-weight:600;">Name</span>
+                        <span style="font-size:13px;color:#162B3C;font-weight:700;float:right;"><%= @submitter.name %></span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:5px 0;border-bottom:1px solid #fecaca;">
+                        <span style="font-size:12px;color:#7f1d1d;font-weight:600;">Email</span>
+                        <span style="font-size:13px;color:#162B3C;float:right;"><%= @submitter.email %></span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:5px 0;border-bottom:1px solid #fecaca;">
+                        <span style="font-size:12px;color:#7f1d1d;font-weight:600;">Role</span>
+                        <span style="font-size:13px;color:#162B3C;float:right;"><%= @css.role %></span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:5px 0;">
+                        <span style="font-size:12px;color:#7f1d1d;font-weight:600;">Invited</span>
+                        <span style="font-size:13px;color:#162B3C;float:right;"><%= @css.invited_at&.strftime('%d %b %Y') || 'Unknown' %></span>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+
+            <%# Agreement summary %>
+            <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:28px;">
+              <tr>
+                <td style="padding:18px 22px;">
+                  <table width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="padding:5px 0;border-bottom:1px solid #edf0f3;">
+                        <span style="font-size:11px;color:#7B787F;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;">Agreement</span>
+                        <span style="font-size:13px;color:#162B3C;font-weight:700;float:right;"><%= @caf.agreement_type_label %></span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:5px 0;">
+                        <span style="font-size:11px;color:#7B787F;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;">Counterparty</span>
+                        <span style="font-size:13px;color:#162B3C;font-weight:700;float:right;"><%= @caf.contracting_party %></span>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+
+            <%# CTA buttons %>
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+              <tr>
+                <td align="center" style="padding-bottom:12px;">
+                  <a href="<%= @agreement_url %>"
+                     style="display:inline-block;background:#162B3C;color:white;font-size:14px;font-weight:700;text-decoration:none;padding:12px 28px;border-radius:8px;">
+                    View Agreement →
+                  </a>
+                </td>
+              </tr>
+              <tr>
+                <td align="center">
+                  <a href="mailto:<%= @submitter.email %>?subject=<%= ERB::Util.url_encode("Please sign: #{@caf.contracting_party}") %>"
+                     style="display:inline-block;background:#f1f5f9;color:#162B3C;font-size:13px;font-weight:600;text-decoration:none;padding:10px 24px;border-radius:8px;border:1px solid #e2e8f0;">
+                    Email Signatory Directly
+                  </a>
+                </td>
+              </tr>
+            </table>
+
+            <p style="font-size:12px;color:#9ca3af;line-height:1.6;margin:0;">
+              Reminders have been sent at day 2, day 5, and day 9. This escalation is being sent on day <%= @days_outstanding %>.
+              If you need to reassign this signature, please contact the IGSIGN administrator.
+            </p>
+          </td>
+        </tr>
+
+        <%# ── Footer ── %>
+        <tr>
+          <td style="background:#f8fafc;border-top:1px solid #edf0f3;padding:18px 40px;text-align:center;">
+            <p style="font-size:11px;color:#9aa3ae;margin:0;">
+              This escalation was generated by <strong style="color:#162B3C;">IGSIGN</strong> — Ignition Group's internal contract management platform.
+              &nbsp;·&nbsp; <a href="https://sign.ignitiongroup.co.za" style="color:#45AC34;text-decoration:none;">sign.ignitiongroup.co.za</a>
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>
