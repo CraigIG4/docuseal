@@ -122,6 +122,16 @@ class CafSubmissionCreator
     else
       build_default_stages(submission)
     end
+
+    # Guard: an empty matrix (stages_config: []) produces no stage records,
+    # which means Stage 0 activate! silently no-ops and the workflow hangs at
+    # pending_ig with nobody invited.  Surface this as a hard error at Send
+    # time so the sender sees a clear message instead of a silent hang.
+    return unless submission.caf_stages.reload.empty?
+
+    raise StandardError,
+          "No approval stages could be built for this #{@caf.agreement_type_label} agreement. " \
+          'Check the CafApprovalMatrix configuration in Admin → Approval Matrices.'
   end
 
   # Generates the CAF summary PDF and attaches it to the submission as an

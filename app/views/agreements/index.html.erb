@@ -89,7 +89,11 @@
               </td>
               <td class="px-4 py-3 text-right">
                 <% if a.draft? %>
-                  <%= link_to 'Continue →', upload_agreement_path(a),
+                  <%# Deep-link to the correct wizard step. NDA skips upload; non-NDA
+                      routes to upload (no template), position (template/no fields),
+                      or review (template + fields placed). %>
+                  <%= link_to 'Continue →',
+                              send(:"#{a.next_draft_step}_agreement_path", a),
                               class: 'text-xs font-medium text-blue-600 hover:text-blue-800' %>
                 <% else %>
                   <%= link_to 'View →', agreement_path(a),

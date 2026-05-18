@@ -97,6 +97,14 @@ class CafCompletionHandler
     submission = @caf.caf_submission
     return if stage2.caf_stage_submitters.exists?
 
+    if @caf.counterparty_email.blank?
+      Rails.logger.error(
+        "[CafCompletionHandler] counterparty_email is blank for caf #{@caf.id} — " \
+        'cannot activate Stage 2. Resolve the missing email in the admin panel.'
+      )
+      return
+    end
+
     # Reuse the stable UUID from the 'Counterparty' slot in the IGSIGN CAF
     # Template so the counterparty's signature fields are correctly bound.
     # Falls back to a fresh UUID only if the template slot is missing.

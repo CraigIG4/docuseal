@@ -172,6 +172,21 @@ class CafWorkflow < ApplicationRecord
   def complete?          = status == 'complete'
   def cancelled?         = status == 'cancelled'
 
+  # Returns the wizard step symbol a draft agreement should resume at.
+  # Used by the agreements index "Continue →" link so that each agreement
+  # deep-links to the correct step rather than always starting at upload.
+  #
+  #   :review   — NDA (no upload step) or upload + fields done
+  #   :position — document uploaded but field placement not yet confirmed
+  #   :upload   — no document uploaded yet
+  def next_draft_step
+    return :review if agreement_type == 'nda'
+    return :upload if template_id.blank?
+    return :position if template&.fields.blank?
+
+    :review
+  end
+
   private
 
   def derived_caf_type

@@ -43,17 +43,45 @@ class CafAuditBundleSender
   end
 
   def deliver_audit_bundle
-    recipients = audit_recipients
+    recipients  = audit_recipients
+    signed_docs = collect_signed_documents
 
     recipients.each do |recipient|
       CafAuditMailer.audit_bundle(
-        caf: @caf,
-        to_name: recipient[:name],
-        to_email: recipient[:email]
+        caf:              @caf,
+        to_name:          recipient[:name],
+        to_email:         recipient[:email],
+        signed_documents: signed_docs
       ).deliver_later
     rescue StandardError => e
       Rails.logger.warn("[CafAuditBundleSender] Failed to send to #{recipient[:email]}: #{e.message}")
     end
+  end
+
+  # Returns the ActiveStorage::Attachment objects for all counterparty-visible
+  # (internal_only: false) documents attached to the CAF submission.
+  # Works for both NDA (dynamically generated agreement PDF) and non-NDA
+  # (uploaded contract blobs).
+  #
+  # Falls back gracefully to an empty array if the submission is missing or
+  # has no CafStageDocument records (e.g., workflow created before this fix).
+  def collect_signed_documents
+    submission = @caf.caf_submission
+    return [] unless submission
+
+    visible_uuids = submission.caf_stage_documents
+                              .where(internal_only: false)
+                              .pluck(:document_uuid)
+                              .to_set
+    return [] if visible_uuids.empty?
+
+    submission.documents
+              .attachments
+              .includes(:blob)
+              .select { |att| visible_uuids.include?(att.uuid) }
+  rescue StandardError => e
+    Rails.logger.warn("[CafAuditBundleSender] collect_signed_documents failed for caf #{@caf.id}: #{e.message}")
+    []
   end
 
   def audit_recipients

@@ -9,7 +9,7 @@ class AgreementsController < ApplicationController
   # ── Index ──────────────────────────────────────────────────────────────────
 
   def index
-    scope = current_account.caf_workflows.includes(:company, :created_by_user).recent
+    scope = current_account.caf_workflows.includes(:company, :created_by_user, :template).recent
 
     sf = params[:status].to_s.strip
     scope = scope.where(status: sf) if sf.present? && CafWorkflow::STATUSES.include?(sf)
@@ -124,7 +124,10 @@ class AgreementsController < ApplicationController
     begin
       Templates::CreateAttachments.call(template, { files: }, extract_fields: true)
       @agreement.update!(template_id: template.id)
-      redirect_to position_agreement_path(@agreement)
+
+      field_count = template.reload.fields&.length || 0
+      notice = build_field_detection_notice(field_count)
+      redirect_to position_agreement_path(@agreement), notice: notice
     rescue StandardError => e
       template.destroy
       Rails.logger.error "[IGSIGN] Upload failed agreement=#{@agreement.id}: #{e.message}"
@@ -202,6 +205,12 @@ class AgreementsController < ApplicationController
                          alert: 'This agreement has already been submitted.'
     end
 
+    if @agreement.counterparty_email.blank?
+      return redirect_to review_agreement_path(@agreement),
+                         alert: "Counterparty email is required before sending. " \
+                                "Please add the counterparty's email address."
+    end
+
     result = CafSubmissionCreator.new(@agreement, current_user).call
 
     if result[:success]
@@ -218,13 +227,19 @@ class AgreementsController < ApplicationController
   # ── CAF Preview ───────────────────────────────────────────────────────────
 
   def caf_preview
+    if @agreement.entity.blank?
+      return redirect_to @agreement,
+                         alert: 'Cannot preview CAF: entity not selected.'
+    end
+
     pdf_path = CafPdfGenerator.new(@agreement).generate
     send_data File.read(pdf_path), filename: "caf_#{@agreement.id}_preview.pdf",
                                    type: 'application/pdf', disposition: 'inline'
   rescue StandardError => e
     Rails.logger.error "[IGSIGN] CAF preview failed agreement=#{@agreement.id}: #{e.message}"
     redirect_to review_agreement_path(@agreement),
-                alert: 'Could not generate CAF preview. Check LibreOffice is installed.'
+                alert: 'CAF preview is not available yet. ' \
+                       'Ensure LibreOffice is installed and the entity is selected.'
   ensure
     File.delete(pdf_path) if pdf_path && File.exist?(pdf_path)
   end
@@ -402,6 +417,19 @@ class AgreementsController < ApplicationController
 
     @agreement.company.company_signatories
               .find_by(email: @agreement.counterparty_email.strip.downcase)
+  end
+
+  # Returns a user-facing flash notice summarising the auto-field-detection
+  # result after a document upload. Zero fields detected prompts manual
+  # placement; one or more fields confirms the count and asks for review.
+  def build_field_detection_notice(field_count)
+    if field_count.zero?
+      'No signature fields were auto-detected. ' \
+        'Please place fields manually by dragging them onto the document below.'
+    else
+      plural = field_count == 1 ? 'field' : 'fields'
+      "#{field_count} #{plural} auto-detected. Review and adjust positions before sending."
+    end
   end
 
   # Fills blank counterparty fields on the agreement from the associated
