@@ -289,11 +289,24 @@
   </div>
 </div>
 
+<%
+  _ig_chains = {}
+  IgSignatories::ENTITIES.each_key do |key|
+    %w[nda short_form long_form].each do |ct|
+      _ig_chains["#{key}_#{ct}"] = IgSignatories.chain_for(ct, key)[:stage1]
+    end
+  end
+%>
+<script id="ig-entities-data" type="application/json" nonce="<%= content_security_policy_nonce %>">
+  <%= IgSignatories.entities_for_js.to_json %>
+</script>
+<script id="ig-chains-data" type="application/json" nonce="<%= content_security_policy_nonce %>">
+  <%= _ig_chains.to_json %>
+</script>
 <script nonce="<%= content_security_policy_nonce %>">
 (function(){
-  var E=<%= raw IgSignatories.entities_for_js.to_json %>;
-  var C={};
-  <% IgSignatories::ENTITIES.each do |key, _| %><% %w[nda short_form long_form].each do |ct| %>C['<%= key %>_<%= ct %>']=<%= raw IgSignatories.chain_for(ct, key)[:stage1].to_json %>;<% end %><% end %>
+  var E=JSON.parse(document.getElementById('ig-entities-data').textContent);
+  var C=JSON.parse(document.getElementById('ig-chains-data').textContent);
   var M={nda:'nda',msa:'long_form',sla:'long_form',vendor:'long_form',other:'long_form',addendum:'short_form',employment:'short_form',policy:'nda'};
   var SEARCH='<%= search_companies_agreements_path(format: :json) %>';
   var SIGNATORIES_URL='<%= recent_signatories_agreements_path(format: :json) %>';

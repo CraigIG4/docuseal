@@ -15,17 +15,50 @@ module IgSignatories
   REGISTERED_ADDRESS = "Quadrant 4, Centenary Building, 30 Meridian Drive\nUmhlanga, KwaZulu-Natal, South Africa"
 
   PEOPLE = {
-    sean_bergsma:      { name: 'Sean Bergsma',      title: 'Group CEO',                    email: 'sean.bergsma@ignitiongroup.co.za',      active: true },
-    donovan_bergsma:   { name: 'Donovan Bergsma',   title: 'Group COO',                    email: 'donovan.bergsma@ignitiongroup.co.za',   active: true },
-    william_talbot:    { name: 'William Talbot',    title: 'BU Head - Technology',         email: 'william.talbot@ignitiongroup.co.za',    active: true },
-    craig_daroche:     { name: 'Craig Daroche',     title: 'BU Head - Commercial',         email: 'craig.daroche@ignitiongroup.co.za',     active: true },
-    richard_swart:     { name: 'Richard Swart',     title: 'BU Head - Operations',         email: 'richard.swart@ignitiongroup.co.za',     active: true },
-    laren_farquharson: { name: 'Laren Farquharson', title: 'Group Finance Director',       email: 'laren.farquharson@ignitiongroup.co.za', active: true },
-    gavin_lucas:       { name: 'Gavin Lucas',       title: 'BU Head - Digital',            email: 'gavin.lucas@ignitiongroup.co.za',       active: true },
-    megan_venter:      { name: 'Megan Venter',      title: 'BU Head - Financial Services', email: 'megan.venter@ignitiongroup.co.za',      active: true },
-    brett_impson:      { name: 'Brett Impson',      title: 'BU Head - Marketplace',        email: 'brett.impson@ignitiongroup.co.za',      active: true },
-    ashley_fourie:     { name: 'Ashley Fourie',     title: 'BU Head - Connectivity',       email: 'ashley.fourie@ignitiongroup.co.za',     active: true },
-    grant_harris:      { name: 'Grant Harris',      title: 'BU Head - Spot',               email: 'grant.harris@ignitiongroup.co.za',      active: true }
+    sean_bergsma: {
+      name: 'Sean Bergsma', title: 'Group CEO',
+      email: 'sean.bergsma@ignitiongroup.co.za', active: true
+    },
+    donovan_bergsma: {
+      name: 'Donovan Bergsma', title: 'Group COO',
+      email: 'donovan.bergsma@ignitiongroup.co.za', active: true
+    },
+    william_talbot: {
+      name: 'William Talbot', title: 'BU Head - Technology',
+      email: 'william.talbot@ignitiongroup.co.za', active: true
+    },
+    craig_daroche: {
+      name: 'Craig Daroche', title: 'BU Head - Commercial',
+      email: 'craig.daroche@ignitiongroup.co.za', active: true
+    },
+    richard_swart: {
+      name: 'Richard Swart', title: 'BU Head - Operations',
+      email: 'richard.swart@ignitiongroup.co.za', active: true
+    },
+    laren_farquharson: {
+      name: 'Laren Farquharson', title: 'Group Finance Director',
+      email: 'laren.farquharson@ignitiongroup.co.za', active: true
+    },
+    gavin_lucas: {
+      name: 'Gavin Lucas', title: 'BU Head - Digital',
+      email: 'gavin.lucas@ignitiongroup.co.za', active: true
+    },
+    megan_venter: {
+      name: 'Megan Venter', title: 'BU Head - Financial Services',
+      email: 'megan.venter@ignitiongroup.co.za', active: true
+    },
+    brett_impson: {
+      name: 'Brett Impson', title: 'BU Head - Marketplace',
+      email: 'brett.impson@ignitiongroup.co.za', active: true
+    },
+    ashley_fourie: {
+      name: 'Ashley Fourie', title: 'BU Head - Connectivity',
+      email: 'ashley.fourie@ignitiongroup.co.za', active: true
+    },
+    grant_harris: {
+      name: 'Grant Harris', title: 'BU Head - Spot',
+      email: 'grant.harris@ignitiongroup.co.za', active: true
+    }
   }.freeze
 
   ENTITIES = {
@@ -33,7 +66,9 @@ module IgSignatories
       name: 'Ignition Telecoms Investments (Pty) Ltd',
       short_name: 'ITI',
       registration: '2010/016551/07',
-      address: "Quadrant 4, Centenary Building, 30 Meridian Drive\nUmhlanga, KwaZulu-Natal, South Africa\nPO Box 1611, Country Club, 4301",
+      address: "Quadrant 4, Centenary Building, 30 Meridian Drive\n" \
+               "Umhlanga, KwaZulu-Natal, South Africa\n" \
+               "PO Box 1611, Country Club, 4301",
       bu_heads: %i[william_talbot craig_daroche richard_swart],
       bu_finance: :laren_farquharson,
       final_signatory_operational: :donovan_bergsma,
@@ -211,7 +246,11 @@ module IgSignatories
   # Reads config/ig_signatory_overrides.yml to allow runtime deactivation
   # without editing this constant. See rake task: igsign:people:deactivate[email]
   def self.overrides
-    file = defined?(Rails) ? Rails.root.join('config', 'ig_signatory_overrides.yml') : Pathname.new(__dir__).join('..', 'config', 'ig_signatory_overrides.yml')
+    file = if defined?(Rails)
+             Rails.root.join('config', 'ig_signatory_overrides.yml')
+           else
+             Pathname.new(__dir__).join('..', 'config', 'ig_signatory_overrides.yml')
+           end
     return {} unless File.exist?(file)
 
     YAML.safe_load(File.read(file)) || {}
