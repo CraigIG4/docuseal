@@ -57,9 +57,9 @@
       <div style="font-size:12px;font-weight:700;color:#7B787F;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;">Signing Chain</div>
       <% Array(@caf.signatories).each_with_index do |sig, idx| %>
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-          <div style="width:26px;height:26px;border-radius:50%;background:#162B3C;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;"><%= idx+1 %></div>
+          <div style="width:26px;height:26px;border-radius:50%;background:#162B3C;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;"><%= idx + 1 %></div>
           <div style="flex:1;">
-            <div style="font-size:13px;font-weight:700;color:#162B3C;"><%= sig["name"].presence || "<em style=color:#ffc107>Not assigned</em>".html_safe %></div>
+            <div style="font-size:13px;font-weight:700;color:#162B3C;"><%= sig["name"].presence || content_tag(:em, "Not assigned", style: "color:#ffc107") %></div>
             <div style="font-size:11px;color:#7B787F;"><%= sig["role"] %><% if sig["email"].present? %> · <%= sig["email"] %><% end %></div>
           </div>
         </div>

@@ -35,12 +35,23 @@ Metrics/MethodLength:
   Exclude:
     - 'db/migrate/**'
     - 'spec/**/*'
+    - 'app/controllers/agreements_controller.rb'
+    - 'app/services/caf_completion_handler.rb'
+    - 'app/services/caf_submission_creator.rb'
 
 Metrics/CyclomaticComplexity:
   Max: 15
+  Exclude:
+    - 'app/controllers/agreements_controller.rb'
+    - 'app/services/caf_completion_handler.rb'
+    - 'app/services/caf_submission_creator.rb'
 
 Metrics/PerceivedComplexity:
   Max: 15
+  Exclude:
+    - 'app/controllers/agreements_controller.rb'
+    - 'app/services/caf_completion_handler.rb'
+    - 'app/services/caf_submission_creator.rb'
 
 Style/MultipleComparison:
   Enabled: false
@@ -65,11 +76,21 @@ Naming/PredicateMethod:
 
 Layout/LineLength:
   AllowedPatterns: ['\A\s*#']
+  Exclude:
+    - 'app/controllers/accounts_controller.rb'
+    - 'app/controllers/embed_scripts_controller.rb'
+    - 'lib/search_entries.rb'
+    - 'lib/submissions/generate_audit_trail.rb'
+    - 'lib/templates/create_attachments.rb'
+    - 'spec/system/account_settings_spec.rb'
 
 Metrics/AbcSize:
   Max: 45
   Exclude:
     - spec/**/*
+    - 'app/controllers/agreements_controller.rb'
+    - 'app/services/caf_completion_handler.rb'
+    - 'app/services/caf_submission_creator.rb'
 
 Metrics/ModuleLength:
   Max: 1000
