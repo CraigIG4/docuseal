@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_05_000011) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_18_000004) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gin"
   enable_extension "pg_catalog.plpgsql"
@@ -101,11 +101,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_05_000011) do
   create_table "caf_approval_matrices", force: :cascade do |t|
     t.bigint "account_id", null: false
     t.boolean "active", default: true, null: false
+    t.jsonb "agreement_types", default: [], null: false
     t.datetime "created_at", null: false
-    t.string "document_type", null: false
+    t.string "document_type"
+    t.jsonb "entity_scope"
+    t.string "name", null: false
     t.jsonb "stages_config", default: [], null: false
     t.datetime "updated_at", null: false
-    t.index ["account_id", "document_type"], name: "idx_caf_approval_matrices_active_unique", unique: true, where: "(active = true)"
+    t.decimal "value_threshold", precision: 15, scale: 2
+    t.index ["account_id", "name"], name: "idx_caf_approval_matrices_active_name_unique", unique: true, where: "(active = true)"
     t.index ["account_id"], name: "index_caf_approval_matrices_on_account_id"
   end
 
@@ -126,13 +130,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_05_000011) do
   create_table "caf_stage_submitters", force: :cascade do |t|
     t.bigint "caf_stage_id", null: false
     t.datetime "created_at", null: false
+    t.datetime "escalated_at"
+    t.datetime "invited_at"
     t.integer "position", default: 0, null: false
+    t.integer "reminder_count", default: 0, null: false
+    t.datetime "reminder_sent_at"
     t.string "role", null: false
     t.bigint "submitter_id", null: false
     t.datetime "updated_at", null: false
     t.index ["caf_stage_id", "position"], name: "index_caf_stage_submitters_on_caf_stage_id_and_position"
     t.index ["caf_stage_id", "submitter_id"], name: "index_caf_stage_submitters_on_caf_stage_id_and_submitter_id", unique: true
     t.index ["caf_stage_id"], name: "index_caf_stage_submitters_on_caf_stage_id"
+    t.index ["invited_at"], name: "index_caf_stage_submitters_on_invited_at"
     t.index ["submitter_id"], name: "index_caf_stage_submitters_on_submitter_id"
   end
 
@@ -156,7 +165,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_05_000011) do
 
   create_table "caf_workflows", force: :cascade do |t|
     t.bigint "account_id", null: false
+    t.string "agreement_purpose"
+    t.string "agreement_term"
     t.string "agreement_type"
+    t.string "agreement_value"
     t.bigint "caf_submission_id"
     t.string "caf_type", null: false
     t.bigint "company_id"
@@ -169,12 +181,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_05_000011) do
     t.string "entity", null: false
     t.text "high_level_summary"
     t.string "ignition_company"
+    t.text "key_risks"
     t.jsonb "long_form_data", default: {}
     t.text "mandate_description"
+    t.string "payment_terms"
     t.string "requestor_email"
     t.string "requestor_name"
     t.jsonb "signatories", default: []
     t.string "status", default: "draft", null: false
+    t.datetime "status_updated_at"
     t.bigint "template_id"
     t.datetime "updated_at", null: false
     t.index ["account_id", "created_at"], name: "index_caf_workflows_on_account_id_and_created_at"
@@ -184,6 +199,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_05_000011) do
     t.index ["company_id"], name: "index_caf_workflows_on_company_id"
     t.index ["contract_submission_id"], name: "index_caf_workflows_on_contract_submission_id"
     t.index ["created_by_user_id"], name: "index_caf_workflows_on_created_by_user_id"
+    t.index ["status_updated_at"], name: "index_caf_workflows_on_status_updated_at"
     t.index ["template_id"], name: "index_caf_workflows_on_template_id"
   end
 
@@ -202,6 +218,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_05_000011) do
     t.index ["account_id", "domain"], name: "index_companies_on_account_id_and_domain"
     t.index ["account_id", "name"], name: "index_companies_on_account_id_and_name"
     t.index ["account_id"], name: "index_companies_on_account_id"
+  end
+
+  create_table "company_signatories", force: :cascade do |t|
+    t.text "authority_basis"
+    t.bigint "company_id", null: false
+    t.datetime "created_at", null: false
+    t.string "email", null: false
+    t.datetime "first_seen_at"
+    t.datetime "last_seen_at"
+    t.bigint "last_workflow_id"
+    t.string "name", null: false
+    t.string "phone"
+    t.string "role_title"
+    t.integer "times_signed", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.boolean "active", default: true, null: false
+    t.index ["company_id", "email"], name: "index_company_signatories_on_company_id_and_email", unique: true
+    t.index ["company_id"], name: "index_company_signatories_on_company_id"
+    t.index ["last_workflow_id"], name: "index_company_signatories_on_last_workflow_id"
   end
 
   create_table "completed_documents", force: :cascade do |t|
@@ -354,6 +389,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_05_000011) do
     t.index ["user_id"], name: "index_encrypted_user_configs_on_user_id"
   end
 
+  create_table "igsign_template_metadata", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.jsonb "entity_scope", default: [], null: false
+    t.string "kind", default: "other", null: false
+    t.text "notes"
+    t.bigint "owner_id"
+    t.string "status", default: "draft", null: false
+    t.bigint "template_id", null: false
+    t.datetime "updated_at", null: false
+    t.integer "version", default: 1, null: false
+    t.index ["entity_scope"], name: "index_igsign_template_metadata_on_entity_scope", using: :gin
+    t.index ["kind"], name: "index_igsign_template_metadata_on_kind"
+    t.index ["owner_id"], name: "index_igsign_template_metadata_on_owner_id"
+    t.index ["status"], name: "index_igsign_template_metadata_on_status"
+    t.index ["template_id"], name: "index_igsign_template_metadata_on_template_id", unique: true
+  end
+
   create_table "lock_events", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "event_name", null: false
@@ -373,6 +425,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_05_000011) do
     t.bigint "user_id", null: false
     t.index ["sha256"], name: "index_mcp_tokens_on_sha256", unique: true
     t.index ["user_id"], name: "index_mcp_tokens_on_user_id"
+  end
+
+  create_table "matrix_audit_events", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.bigint "caf_approval_matrix_id", null: false
+    t.datetime "created_at", null: false
+    t.jsonb "data", default: {}, null: false
+    t.string "event_type", null: false
+    t.bigint "user_id"
+    t.index ["account_id"], name: "index_matrix_audit_events_on_account_id"
+    t.index ["caf_approval_matrix_id"], name: "index_matrix_audit_events_on_caf_approval_matrix_id"
+    t.index ["event_type"], name: "index_matrix_audit_events_on_event_type"
   end
 
   create_table "oauth_access_grants", force: :cascade do |t|
@@ -615,6 +679,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_05_000011) do
     t.string "unlock_token"
     t.datetime "updated_at", null: false
     t.string "uuid", null: false
+    t.datetime "walkthrough_completed_at"
     t.index ["account_id"], name: "index_users_on_account_id"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
@@ -678,6 +743,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_05_000011) do
   add_foreign_key "caf_workflows", "templates"
   add_foreign_key "caf_workflows", "users", column: "created_by_user_id"
   add_foreign_key "companies", "accounts"
+  add_foreign_key "company_signatories", "caf_workflows", column: "last_workflow_id"
+  add_foreign_key "company_signatories", "companies"
+  add_foreign_key "igsign_template_metadata", "templates"
+  add_foreign_key "igsign_template_metadata", "users", column: "owner_id"
+  add_foreign_key "matrix_audit_events", "accounts"
+  add_foreign_key "matrix_audit_events", "caf_approval_matrices"
   add_foreign_key "document_generation_events", "submitters"
   add_foreign_key "document_metadata", "accounts"
   add_foreign_key "dynamic_document_versions", "dynamic_documents"
