@@ -4,7 +4,7 @@ require 'rails_helper'
 
 RSpec.describe 'TemplatesLibrary', type: :request do
   let(:admin)   { create(:user, role: User::ADMIN_ROLE) }
-  let(:sender)  { create(:user) }
+  let(:sender)  { create(:user, role: nil) }
   let(:account) { sender.account }
 
   let!(:template_with_meta) do
@@ -15,7 +15,7 @@ RSpec.describe 'TemplatesLibrary', type: :request do
 
   let!(:draft_template) do
     t = create(:template, author: sender, account: account, name: 'Draft MSA')
-    create(:igsign_template_metadata, template: t, kind: 'msa', status: 'draft')
+    create(:igsign_template_metadata, template: t, kind: 'short_form_caf', status: 'draft')
     t
   end
 

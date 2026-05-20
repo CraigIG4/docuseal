@@ -4,7 +4,7 @@ require 'rails_helper'
 
 RSpec.describe 'Admin::Templates', type: :request do
   let(:admin)   { create(:user, role: User::ADMIN_ROLE) }
-  let(:viewer)  { create(:user) }
+  let(:viewer)  { create(:user, role: nil) }
   let(:account) { admin.account }
 
   let!(:template) { create(:template, author: admin, account: account) }
@@ -90,9 +90,9 @@ RSpec.describe 'Admin::Templates', type: :request do
 
     it 'updates the metadata and redirects' do
       patch admin_template_path(template),
-            params: valid_meta_params(kind: 'msa')
+            params: valid_meta_params(kind: 'long_form_caf')
       expect(response).to redirect_to(admin_templates_path)
-      expect(meta.reload.kind).to eq('msa')
+      expect(meta.reload.kind).to eq('long_form_caf')
     end
 
     it 'bumps version when updating an active record' do

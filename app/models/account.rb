@@ -71,7 +71,10 @@ class Account < ApplicationRecord
   end
 
   def default_template_folder
-    super || build_default_template_folder(name: TemplateFolder::DEFAULT_NAME,
-                                           author_id: users.minimum(:id)).tap(&:save!)
+    super || begin
+      author_id = users.minimum(:id)
+      build_default_template_folder(name: TemplateFolder::DEFAULT_NAME,
+                                    author_id: author_id).tap(&:save!) if author_id
+    end
   end
 end
