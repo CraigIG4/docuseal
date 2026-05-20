@@ -6,8 +6,6 @@
 # escalation_notice: alerts the workflow requestor when a signatory has been
 #   outstanding for ESCALATION_THRESHOLD_DAYS (day 14).
 class ReminderMailer < ApplicationMailer
-  default from: -> { GlobalConfig.dig(:app, :from_email) || 'igsign@ignitiongroup.co.za' }
-
   # Sends a reminder to the submitter.
   #
   # @param css [CafStageSubmitter] the stage submitter record

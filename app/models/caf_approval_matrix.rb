@@ -116,7 +116,7 @@ class CafApprovalMatrix < ApplicationRecord
   #   bit 2: entity is explicitly scoped   (4 points)
   #   bit 1: value threshold is set        (2 points)
   #   bit 0: agreement_types is a singleton(1 point)
-  def specificity_score(entity = nil, value = nil)
+  def specificity_score(_entity = nil, _value = nil)
     score = 0
     score += 4 if entity_scope.present?
     score += 2 if value_threshold.present?

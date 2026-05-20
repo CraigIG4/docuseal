@@ -4,7 +4,9 @@ require 'rails_helper'
 
 RSpec.describe ReminderCheckJob, type: :job do
   let(:account)    { create(:account) }
-  let(:submission) { create(:submission, account: account) }
+  let(:user)       { create(:user, account: account) }
+  let(:template)   { create(:template, account: account, author: user) }
+  let(:submission) { create(:submission, template: template, created_by_user: user) }
   let(:stage)      { create(:caf_stage, submission: submission, status: 'active') }
   let(:submitter)  { create(:submitter, submission: submission, sent_at: 3.days.ago) }
 

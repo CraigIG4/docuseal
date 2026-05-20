@@ -2,7 +2,6 @@
 
 # IGSIGN — Mailer for the final audit bundle delivery.
 class CafAuditMailer < ApplicationMailer
-  default from: -> { GlobalConfig.dig(:app, :from_email) || 'igsign@ignitiongroup.co.za' }
 
   # Sends the fully executed document + IGSIGN signing certificate to a recipient.
   #

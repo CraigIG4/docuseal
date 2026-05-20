@@ -101,7 +101,7 @@ class AgreementsController < ApplicationController
     @step = 2
   end
 
-  # rubocop:disable Metrics/MethodLength
+
   def process_upload
     files = Array(params[:files]).reject(&:blank?)
     if files.empty?
@@ -140,11 +140,11 @@ class AgreementsController < ApplicationController
       redirect_to upload_agreement_path(@agreement), alert: user_message
     end
   end
-  # rubocop:enable Metrics/MethodLength
+
 
   # ── Step 2b — Position Fields ─────────────────────────────────────────────
 
-  # rubocop:disable Metrics/MethodLength
+
   def position
     unless @agreement.template
       return redirect_to upload_agreement_path(@agreement),
@@ -170,7 +170,7 @@ class AgreementsController < ApplicationController
 
     render layout: 'plain'
   end
-  # rubocop:enable Metrics/MethodLength
+
 
   def save_fields
     unless @agreement.template
@@ -227,7 +227,7 @@ class AgreementsController < ApplicationController
 
   # ── Remind ────────────────────────────────────────────────────────────────
 
-  # rubocop:disable Metrics/MethodLength
+
   # POST /agreements/:id/remind
   # Queues immediate reminder emails for all unsigned submitters in the current
   # active stage.  Resets the reminder ladder so day-2/5/9/14 restarts from now.
@@ -267,7 +267,7 @@ class AgreementsController < ApplicationController
                   alert: 'No pending signatories to remind — everyone has already signed.'
     end
   end
-  # rubocop:enable Metrics/MethodLength
+
 
   # ── CAF Preview ───────────────────────────────────────────────────────────
 

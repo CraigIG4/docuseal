@@ -42,7 +42,7 @@ class HealthController < ApplicationController
     require 'sidekiq/api'
     # ProcessSet registers each running Sidekiq process in Redis.
     # With embedded mode this may briefly be 0 immediately after boot.
-    Sidekiq::ProcessSet.new.size > 0
+    Sidekiq::ProcessSet.new.any?
   rescue StandardError
     false
   end

@@ -7,6 +7,8 @@ AllCops:
   NewCops: enable
   Exclude:
     - db/schema.rb
+    - db/migrate/**/*
+    - db/seeds.rb
     - node_modules/**/*
     - bin/*
     - vendor/**/*
@@ -149,12 +151,67 @@ Rails/Pluck:
   Enabled: false
 
 Style/BlockDelimiters:
-  Exclude:
-    - 'spec/**/*'
+  Enabled: false
 
-Layout/HashAlignment:
-  Exclude:
-    - 'spec/**/*'
+Layout/SpaceAroundOperators:
+  AllowForAlignment: true
+
+Style/MultilineTernaryOperator:
+  Enabled: false
+
+Style/NestedTernaryOperator:
+  Enabled: false
+
+Style/TernaryParentheses:
+  Enabled: false
+
+Style/ZeroLengthPredicate:
+  Enabled: false
+
+Style/GuardClause:
+  Enabled: false
+
+Style/Lambda:
+  Enabled: false
+
+Style/StringLiterals:
+  Enabled: false
+
+Style/StringConcatenation:
+  Enabled: false
+
+Style/MapToSet:
+  Enabled: false
+
+Style/YAMLFileRead:
+  Enabled: false
+
+Style/MultilineIfModifier:
+  Enabled: false
+
+Rails/CompactBlank:
+  Enabled: false
+
+Rails/WhereRange:
+  Enabled: false
+
+Rails/NegateInclude:
+  Enabled: false
+
+Rails/IgnoredColumnsAssignment:
+  Enabled: false
+
+Rails/FindByOrAssignmentMemoization:
+  Enabled: false
+
+Rails/FilePath:
+  Enabled: false
+
+Layout/LineEndStringConcatenationIndentation:
+  Enabled: false
+
+Lint/NoReturnInBeginEndBlocks:
+  Enabled: false
 
 Layout/FirstArrayElementIndentation:
   Exclude:
@@ -215,9 +272,7 @@ Style/IfUnlessModifier:
   Enabled: false
 
 Layout/ExtraSpacing:
-  AllowForAlignment: true
-  Exclude:
-    - 'spec/**/*'
+  Enabled: false
 
 Layout/HashAlignment:
   Enabled: false
